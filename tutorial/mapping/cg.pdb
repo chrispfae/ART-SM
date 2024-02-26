@@ -1,0 +1,5 @@
+TITLE     MDANALYSIS FRAME 0: Created by PDBWriter
+CRYST1   35.465   35.465   35.465  90.00  90.00  90.00 P 1           1
+ATOM      1  C1O HEP X   1       7.260   9.330  34.150  1.00  0.00      SYST O  
+ATOM      2  C2A HEP X   1      10.680   7.470  36.180  1.00  0.00      SYST C  
+END

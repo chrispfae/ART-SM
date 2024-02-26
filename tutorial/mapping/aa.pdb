@@ -1,0 +1,27 @@
+TITLE     MDANALYSIS FRAME 0: Created by PDBWriter
+CRYST1   35.465   35.465   35.465  90.00  90.00  90.00 P 1           1
+ATOM      1  O   HEP X   1       5.720   9.730  33.420  1.00  0.00      SYST O  
+ATOM      2  C1  HEP X   1       6.940   9.990  34.090  1.00  0.00      SYST C  
+ATOM      3  H1  HEP X   1       7.410  10.950  33.750  1.00  0.00      SYST H  
+ATOM      4  H2  HEP X   1       6.700  10.160  35.160  1.00  0.00      SYST H  
+ATOM      5  C2  HEP X   1       7.830   8.750  34.040  1.00  0.00      SYST C  
+ATOM      6  H3  HEP X   1       7.130   7.910  34.280  1.00  0.00      SYST H  
+ATOM      7  H4  HEP X   1       8.400   8.590  33.110  1.00  0.00      SYST H  
+ATOM      8  C3  HEP X   1       8.800   8.720  35.220  1.00  0.00      SYST C  
+ATOM      9  H5  HEP X   1       9.760   9.120  34.830  1.00  0.00      SYST H  
+ATOM     10  H6  HEP X   1       8.420   9.290  36.090  1.00  0.00      SYST H  
+ATOM     11  C4  HEP X   1       9.070   7.300  35.700  1.00  0.00      SYST C  
+ATOM     12  H7  HEP X   1       8.180   6.790  36.140  1.00  0.00      SYST H  
+ATOM     13  H8  HEP X   1       9.390   6.700  34.830  1.00  0.00      SYST H  
+ATOM     14  C5  HEP X   1      10.010   7.300  36.910  1.00  0.00      SYST C  
+ATOM     15  H9  HEP X   1       9.580   7.730  37.840  1.00  0.00      SYST H  
+ATOM     16  H10 HEP X   1      10.120   6.200  37.030  1.00  0.00      SYST H  
+ATOM     17  C6  HEP X   1      11.370   7.960  36.680  1.00  0.00      SYST C  
+ATOM     18  H11 HEP X   1      11.310   9.070  36.580  1.00  0.00      SYST H  
+ATOM     19  H12 HEP X   1      12.000   7.630  37.530  1.00  0.00      SYST H  
+ATOM     20  C7  HEP X   1      12.130   7.420  35.460  1.00  0.00      SYST C  
+ATOM     21  H13 HEP X   1      11.800   7.700  34.440  1.00  0.00      SYST H  
+ATOM     22  H14 HEP X   1      13.020   8.090  35.490  1.00  0.00      SYST H  
+ATOM     23  H15 HEP X   1      12.400   6.350  35.520  1.00  0.00      SYST H  
+ATOM     24  H16 HEP X   1       5.970   9.220  32.640  1.00  0.00      SYST H  
+END

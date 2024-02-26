@@ -1,0 +1,3 @@
+s: "../snapshots/atomistic.pdb"                                                                                                                                                                                     
+x: "../snapshots/atomistic.xtc"
+t: ['../mapping_files/und.yaml', '../mapping_files/hep.yaml', '../mapping_files/prp.yaml', '../mapping_files/water.yaml']

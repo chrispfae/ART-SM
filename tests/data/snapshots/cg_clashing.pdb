@@ -1,0 +1,22 @@
+TITLE     MDANALYSIS FRAME 0: Created by PDBWriter
+CRYST1   32.970   32.970   32.970  90.00  90.00  90.00 P 1           1
+ATOM      9  C1O HEP X   5      34.634  35.922  11.752  1.00  0.00      SYST
+ATOM     10  C2A HEP X   5      33.961  33.895   7.689  1.00  0.00      SYST
+ATOM     11  C1O HEP X   6      34.634  35.922  11.752  1.00  0.00      SYST
+ATOM     12  C2A HEP X   6      33.961  33.895   7.689  1.00  0.00      SYST
+ATOM     13  C1O HEP X   7      34.634  35.922  11.752  1.00  0.00      SYST
+ATOM     14  C2A HEP X   7      33.961  33.895   7.689  1.00  0.00      SYST
+ATOM     15  C1O PRP X   8      34.634  35.922  11.752  1.00  0.00      SYST
+ATOM     16  C1O PRP X   9      34.634  35.922  11.752  1.00  0.00      SYST
+ATOM     17  C1O PRP X  10      34.634  35.922  11.752  1.00  0.00      SYST
+ATOM     18  C1O HEP X  11      34.634  35.922  11.752  1.00  0.00      SYST
+ATOM     19  C2A HEP X  11      33.961  33.895   7.689  1.00  0.00      SYST
+ATOM     20  C1O HEP X  12      34.634  35.922  11.752  1.00  0.00      SYST
+ATOM     21  C2A HEP X  12      33.961  33.895   7.689  1.00  0.00      SYST
+ATOM     22  C1O HEP X  13      34.834  35.222  11.252  1.00  0.00      SYST
+ATOM     24  C2A HEP X  13      33.961  33.895   7.689  1.00  0.00      SYST
+ATOM     25  C1O HEP X  14      34.834  35.222  11.252  1.00  0.00      SYST
+ATOM     26  C2A HEP X  14      33.961  33.895   7.689  1.00  0.00      SYST
+ATOM     27  C1O HEP X  15      34.134  35.122  11.152  1.00  0.00      SYST
+ATOM     28  C2A HEP X  15      33.961  33.895   7.689  1.00  0.00      SYST
+END

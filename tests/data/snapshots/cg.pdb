@@ -1,0 +1,17 @@
+TITLE     MDANALYSIS FRAME 0: Created by PDBWriter
+CRYST1   32.970   32.970   32.970  90.00  90.00  90.00 P 1           1
+ATOM      1  C1O UND X   1      20.910  23.821  13.001  1.00  0.00      SYST    
+ATOM      2  C2A UND X   1      23.532  24.296  16.957  1.00  0.00      SYST    
+ATOM      3  C3A UND X   1      22.702  25.277  21.248  1.00  0.00      SYST    
+ATOM      4  C1O UND X   2      17.383  23.028  31.511  1.00  0.00      SYST    
+ATOM      5  C2A UND X   2      13.311  24.596  32.832  1.00  0.00      SYST    
+ATOM      6  C3A UND X   2      10.458  23.675  29.895  1.00  0.00      SYST    
+ATOM      7  C1A PRP X   3       0.513  25.419  23.874  1.00  0.00      SYST    
+ATOM      8  C1A PRP X   4      30.123  11.375   7.437  1.00  0.00      SYST    
+ATOM      9  C1O HEP X   5      34.634  35.922  11.752  1.00  0.00      SYST    
+ATOM     10  C2A HEP X   5      33.961  33.895   7.689  1.00  0.00      SYST    
+ATOM     11  C1O HEP X   6      32.319   5.072  25.900  1.00  0.00      SYST    
+ATOM     12  C2A HEP X   6      36.813   4.365  27.294  1.00  0.00      SYST    
+ATOM     13    W TIP X   7      17.160  24.080   1.580  1.00  0.00      SYST
+ATOM     14    W TIP X   8       4.050   4.340  20.580  1.00  0.00      SYST
+END

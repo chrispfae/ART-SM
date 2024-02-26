@@ -1,0 +1,64 @@
+PRP:
+  adj_atoms:
+    C1:
+    - H1
+    - H2
+    - H3
+    - C2
+    C2:
+    - C1
+    - H4
+    - H5
+    - C3
+    C3:
+    - C2
+    - H6
+    - H7
+    - O
+    H1:
+    - C1
+    H2:
+    - C1
+    H3:
+    - C1
+    H4:
+    - C2
+    H5:
+    - C2
+    H6:
+    - C3
+    H7:
+    - C3
+    H8:
+    - O
+    O:
+    - C3
+    - H8
+  atom_order:
+  - H1
+  - C1
+  - H2
+  - H3
+  - C2
+  - H4
+  - H5
+  - C3
+  - H6
+  - H7
+  - O
+  - H8
+  mapping:
+    C1A:
+    - H1
+    - C1
+    - H2
+    - H3
+    - C2
+    - H4
+    - H5
+    - C3
+    - H6
+    - H7
+    - O
+    - H8
+  smiles: CCCO
