@@ -3,7 +3,7 @@ import re
 import pytest
 
 import artsm.utils.cli as cli
-from fixtures import args_build_db, args_backmap, args_mapping, args_cg, args_posre
+from fixtures import args_build_db, args_backmap, args_mapping, args_cg, args_posre, args_append_db
 
 
 def test_build_db_cli_0(args_build_db):
@@ -97,8 +97,8 @@ def test_build_db_cli_6(args_build_db, caplog):
     assert res['n_datapoints'] == 200
 
     # Catch warning
-    assert caplog.text == 'WARNING  artsm.utils.cli:cli.py:64 Option -g is provided. Additional argument -s is ignored. Please provide it in the individual simulation config files.\n' \
-                          'WARNING  artsm.utils.cli:cli.py:64 Option -g is provided. Additional argument -t is ignored. Please provide it in the individual simulation config files.\n'
+    assert caplog.text == 'WARNING  artsm.utils.cli:cli.py:67 Option -g is provided. Additional argument -s is ignored. Please provide it in the individual simulation config files.\n' \
+                          'WARNING  artsm.utils.cli:cli.py:67 Option -g is provided. Additional argument -t is ignored. Please provide it in the individual simulation config files.\n'
 
 
 def test_build_db_cli_7(args_build_db, caplog):
@@ -112,6 +112,33 @@ def test_build_db_cli_8(args_build_db):
     with pytest.raises(SystemExit) as exc:
         cli.parse_cl_db(args_build_db[8])
     assert exc.value.code == 2
+
+
+def test_append_db_cli_0(args_append_db):
+    res = vars(cli.parse_cl_append(args_append_db[0]))
+    assert res['d'] == 'database.db'
+    assert res['g'] == 'file1.yaml'
+    assert res['c'] is None
+    assert res['s'] is None
+    assert res['t'] is None
+    assert res['x'] is None
+    assert res['time_step'] == 400
+    assert res['seed'] == 300
+    assert res['o'] == 'appended1.db'
+
+
+def test_append_db_cli_1(args_append_db):
+    res = vars(cli.parse_cl_append(args_append_db[1]))
+    assert res['d'] == 'database.db'
+    assert res['g'] == 'file1.yaml'
+    assert res['c'] is None
+    assert res['s'] is None
+    assert res['t'] is None
+    assert res['x'] is None
+    assert res['time_step'] == 400
+    assert res['seed'] == 300
+    assert res['o'] == 'appended2.db'
+    assert res['release']
 
 
 def test_backmap_cli_0(args_backmap):

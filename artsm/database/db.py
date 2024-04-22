@@ -543,7 +543,7 @@ class DBdata:
                     return False
             return models
 
-    def add_fr_pair(self, fr_pair):
+    def add_fr_pair(self, fr_pair, ignore_data=False):
         """
         Add a fragment pair (and its corresponding fragments) to the database if it does not exist.
 
@@ -582,7 +582,9 @@ class DBdata:
         try:
             self._cursor.execute('INSERT INTO fr_pairs VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                                  (fr_pair_id, fr1_id, fr2_id, smiles, atoms, elements, bond_types, *models))
-            self._cursor.execute('INSERT INTO data_fr_pairs VALUES (?, ?, ?, ?, ?, ?, ?)', (fr_pair_id, *data))
+            if not ignore_data:
+                self._cursor.execute('INSERT INTO data_fr_pairs VALUES (?, ?, ?, ?, ?, ?, ?)', (fr_pair_id, *data))
+
             self._connection.commit()
         except sqlite3.Error as err:
             logger = setup_logger(__name__)
@@ -632,6 +634,32 @@ class DBdata:
         except sqlite3.Error:
             logger = setup_logger(__name__)
             logger.error('Could not copy database for release.')
+            raise
+
+    def copy_db(self, filename, release=False):
+        """
+        Copies tables from the current database to a new database file. With the 'release' option, this function can
+        create a release output file that is the same as a copied database with the exception that the tables
+        'data_fr_pairs' and 'data_frs' are empty. The release database is suitable for sharing with end-users.
+
+        Args:
+            filename (str): The path of the new database file.
+            release (bool): Whether to copy for release purpose.
+        """
+        if os.path.exists(filename):
+            os.remove(filename)
+
+        try:
+            self._cursor.execute('ATTACH DATABASE ? AS new_db', (filename,))
+            self.copy_table(self._cursor, 'fragments')
+            self.copy_table(self._cursor, 'fr_pairs')
+            self.copy_table(self._cursor, 'data_fr_pairs', delete=release)
+            self.copy_table(self._cursor, 'data_frs', delete=release)
+            self.copy_table(self._cursor, 'bonds')
+            self.copy_table(self._cursor, 'angles')
+            self._connection.commit()
+        except sqlite3.Error:
+            logger.error('Could not copy database.')
             raise
 
     @staticmethod
@@ -801,7 +829,7 @@ class DBdata:
             True if the fragment was successfully deleted, False otherwise.
         """
         try:
-            self._cursor.execute('DELETE FROM fragments WHERE fr_id = ?', (id_fr1,))
+            self._cursor.execute('DELETE FROM fragments WHERE fr_id = ?', (identifier,))
             self._cursor.execute('DELETE FROM data_frs WHERE fr_id = ?', (identifier,))
             self.cleanup()
             self._connection.commit()
@@ -976,3 +1004,25 @@ class DBdata:
             logger.warning(f'There are only {data_points} data points for the angle {element1}-{element2}- {element3}'
                            f'of type {bond_type1} and {bond_type2}')
         return val
+
+    def get_angle_counts(self):
+        """
+        Get a dictionary containing the counts of angles in the database.
+
+        Returns:
+            dict: A dictionary containing the counts of angles in the database.
+        """
+        counts = self._cursor.execute('SELECT element1, element2, element3, bond_type1, bond_type2, datapoints FROM angles').fetchall()
+        counts = {(i[0], i[1], i[2], i[3], i[4]): i[5] for i in counts}
+        return counts
+    
+    def get_bond_counts(self):
+        """
+        Get a dictionary containing the counts of bonds in the database.
+
+        Returns:
+            dict: A dictionary containing the counts of bonds in the database.
+        """
+        counts = self._cursor.execute('SELECT element1, element2, bond_type, datapoints FROM bonds').fetchall()
+        counts = {(i[0], i[1], i[2]): i[3] for i in counts}                                            
+        return counts

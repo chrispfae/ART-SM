@@ -328,7 +328,7 @@ class Simulation:
                     logger = setup_logger(__name__)
                     logger.warning(f'Your requested time step is {self.time_step}, which is smaller than the '
                                    f'time step of the provided simulation, namely {delta_t}. Data will be extracted'
-                                   f'with a time step of {delta_t}.')
+                                   f' with a time step of {delta_t}.')
                     self.sampling_step = int(delta_t)
                 else:
                     self.sampling_step = int(self.time_step / delta_t)
@@ -434,13 +434,17 @@ class Simulation:
                             else:
                                 self.angles_data_[idx] = [angle]
 
-    def write_to_db(self, database):
+    def write_to_db(self, database, ignore_fr_pairs=None, ignore_fr=None):
         """
         Write bond, angle, and molecule data extracted from a simulation trajectory to the database.
 
         Parameters
         ----------
         database : DBdata
+        ignore_fr_pairs: list, default None
+            Contains the identifiers of fragment pairs that should be ignored.
+        ignore_fr: list, default None
+            Contains the identifiers of fragments that should be ignored.
         """
         # Write bond and angle data from simulations to database
         database.add_bond_data(self.bonds_data_)
@@ -449,7 +453,7 @@ class Simulation:
         # Write molecule data from simulations to database
         for molecule in self.molecules.values():
             if not isinstance(molecule, Water):
-                molecule.write_to_db(database)
+                molecule.write_to_db(database, ignore_fr_pairs, ignore_fr)
 
     def load_models_db(self, database):
         """

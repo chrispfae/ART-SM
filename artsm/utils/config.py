@@ -48,6 +48,45 @@ def parse_args(args):
     return config
 
 
+def parse_args_append(args):
+    """
+    Parse the command line arguments, read specified files, and return a configuration dictionary for append_db.
+
+    The configuration dictionary is created based on the provided arguments.
+    - If the 'g' arguments is provided, the global configuration file is parsed
+    - If the 'c' arguments is provided, the configuration file for a single simulation is parsed
+    - If neither 'g' nor 'c' is provided, the provided arguments (like 's', 't', 'x')
+      are parsed to create the configuration dictionary.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Command line arguments.
+
+    Returns
+    -------
+    dict
+        A configuration dictionary based on the provided arguments.
+    """
+    if hasattr(args, 'g') and args.g is not None:
+        config = parse_config_g(args.g)
+    elif hasattr(args, 'c') and args.c is not None:
+        config = {'sim1': parse_config_sim(args.c)}
+    else:
+        relevant_keys = ['d', 's', 't', 'x', 'time_step']
+        config_sim = vars(args)
+        config_sim_new = {key_: value_ for key_, value_ in config_sim.items() if key_ in relevant_keys and value_ is not None}
+        modify_stx(config_sim_new)
+        config = {'sim1': config_sim_new}
+
+    # Ensure that each simulation config has the time_step key if building a database
+    if hasattr(args, 'time_step'):
+        for config_sim in config.values():
+            if 'time_step' not in config_sim:
+                config_sim['time_step'] = args.time_step
+    return config     
+
+
 def parse_config_g(filename):
     """
     Parse the global configuration file (yaml format) and return a dictionary of simulation configurations.

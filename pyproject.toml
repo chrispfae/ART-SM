@@ -51,6 +51,7 @@ requires = ["setuptools", "wheel", "oldest-supported-numpy", "cython"]
 artsm-backmap = "artsm.artsm:main"
 artsm-build_db = "artsm.build_db:main"
 artsm-coarse_grain = "artsm.coarse_grain:main"
+artsm-append = "artsm.append_db:main"
 artsm-mapping = "artsm.mapping:main"
 artsm-posre = "artsm.generate_posre:main"
 

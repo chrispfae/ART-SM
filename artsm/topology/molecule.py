@@ -416,7 +416,7 @@ class Molecule:
                                 fr_pair.fr2.smiles = Chem.MolToSmiles(fr2)
                         break
 
-    def write_to_db(self, db):
+    def write_to_db(self, db, ignore_fr_pairs=None, ignore_fr=None):
         """
         Write the extracted simulation data to a database.
 
@@ -428,13 +428,20 @@ class Molecule:
         ----------
         db: DBdata
             The database object.
+        ignore_fr_pairs: list, default None
+            Contains the identifiers of fragment pairs that should be ignored.
+        ignore_fr: list, default None
+            Contains the identifiers of fragments that should be ignored.
         """
         if len(self.fragments) > 1:
             # Write fr_pair data from simulations to database
             for fr_pair in self.fr_pairs.values():
                 identifier, reverse = db.isin_fr_pair(fr_pair)
                 if identifier:
-                    db.append_fr_pair_data(identifier, fr_pair.get_data(), reverse)
+                    if ignore_fr_pairs is not None and identifier in ignore_fr_pairs:
+                        continue
+                    else:  # in db, not in ignore_fr_pairs so data added in prev iteration
+                        db.append_fr_pair_data(identifier, fr_pair.get_data(), reverse)
                 else:
                     db.add_fr_pair(fr_pair)
         else:
@@ -442,7 +449,10 @@ class Molecule:
             for fr in self.fragments.values():
                 identifier = db.isin_fr(fr)
                 if identifier:
-                    db.append_fr_data(identifier, fr.get_data())
+                    if ignore_fr is not None and identifier in ignore_fr:
+                        continue
+                    else:
+                        db.append_fr_data(identifier, fr.get_data())
                 else:
                     db.add_fragment(fr)
 

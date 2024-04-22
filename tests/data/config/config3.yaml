@@ -1,4 +1,4 @@
-s: "../snapshots/atomistic.pdb"                                                                                                                                                                                     
-x: "../snapshots/atomistic.xtc"
+s: "../atomistic_cg_data/atomistic_mixture.pdb"
+x: "../atomistic_cg_data/atomistic_mixture.xtc"
 t: "../mapping_files/und.yaml ../mapping_files/hep.yaml ../mapping_files/prp.yaml ../mapping_files/water.yaml"
 time_step: 200

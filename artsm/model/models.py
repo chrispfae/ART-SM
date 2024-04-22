@@ -49,7 +49,7 @@ def _prepare_fr_folders(path, idx):
         os.makedirs(os.path.join(fr_path, 'ml'), exist_ok=True)
 
 
-def derive_models(database, path, rng, seed=None):
+def derive_models(database, path, rng, seed=None, ignore_fr_pairs=None, ignore_fr=None):
     """
     Derives models (main conformations and ML models/probabilities) for one bead molecules and fragment pairs
     in the given database.
@@ -64,23 +64,34 @@ def derive_models(database, path, rng, seed=None):
         Default random number generator of numpy.
     seed : int, default None
         Seed for reproducible results
+    ignore_fr_pairs : list, default None
+        A list of fr_pair indices to ignore.
+    ignore_fr : list, default None
+        A list of fragment indices to ignore.
     """
 
     # Fragment pair models
-    idx = database.get_fr_pair_ids()
-    if idx:
-        _prepare_fr_pair_folders(path, idx)
-        for fr_pair_id in idx:
+    if ignore_fr_pairs is None:
+        fr_pair_ids = database.get_fr_pair_ids()
+    else:
+        fr_pair_ids = list(set(database.get_fr_pair_ids() or []) - set(ignore_fr_pairs))
+    if fr_pair_ids:
+        _prepare_fr_pair_folders(path, fr_pair_ids)
+        for fr_pair_id in fr_pair_ids:
             fr_pair = database.get_fr_pair(fr_pair_id, rng)
             path_fr_pair = os.path.join(path, f'build_db/fr_pair{fr_pair_id}')
             fr_pair.derive_models(path_fr_pair, rng, seed)
             database.update_fr_pair_models(fr_pair_id, fr_pair.get_models())
 
     # One bead models
-    idx = database.get_fr_ids(data_required=True)
-    if idx:
-        _prepare_fr_folders(path, idx)
-        for fr_id in idx:
+    if ignore_fr is None:
+        fr_ids = database.get_fr_ids(data_required=True)
+    else:
+        fr_ids = list(set(database.get_fr_ids(data_required=True) or []) - set(ignore_fr))
+
+    if fr_ids:
+        _prepare_fr_folders(path, fr_ids)
+        for fr_id in fr_ids:
             fr = database.get_fr(fr_id, rng)
             path_fr = os.path.join(path, f'build_db/fragment{fr_id}')
             fr.derive_models(path_fr)

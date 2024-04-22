@@ -4,32 +4,20 @@ import sys
 from artsm.utils.other import setup_logger
 
 
-def parse_cl_db(cl):
+def parse_common_args(parser):
     """
-    Parse command line arguments for building a fragment-pair database.
+    Adds common command-line arguments for building or appending a database to an ArgumentParser.
 
     Parameters:
     ----------
-    cl : list of str
-        Command line arguments.
+    parser : argparse.Namespace
+        Parser that is extended.
 
     Returns
     -------
-    argparse.Namespace
-        Parsed command line arguments.
+    parser : argparse.Namespace
+        Extended parser.
     """
-
-    parser = argparse.ArgumentParser(prog='artsm-build_db',
-                                     description='Building a database of fragment-pairs from atomistic simulations. '
-                                                 'Minimum requirements are an atomistic snapshot (e.g. pdb), '
-                                                 'trajectory (e.g. xtc) and a mapping file that indicates the mapping '
-                                                 'from atomistic to coarse-grained resolution. For a single simulation they can be'
-                                                 'provided with the arguments -s, -x, and -t or with a simulation '
-                                                 'config file (argument -c). For multiple simulations please specify a '
-                                                 'global config file with the argument -g.')
-    requiredNamed = parser.add_argument_group('required named arguments')
-    requiredNamed.add_argument('-d', '--database', type=str, dest='d', required=True,
-                               help='Output database file for storing fragments, fragment-pairs and their models.')
     group = parser.add_argument_group('config files')
     exclusive_group = group.add_mutually_exclusive_group(required=False)
     exclusive_group.add_argument('-c', '--config_simulation', type=str, dest='c',
@@ -53,9 +41,24 @@ def parse_cl_db(cl):
     parser.add_argument('--n_datapoints', nargs='?', type=int, default=500, const=500,
                         help='Maximum number of datapoints of fragment-pairs used for training the ML model. '
                              'Increasing the number of datapoints will significantly increase the runtime.')
-    args = parser.parse_args(cl)
+    return parser
 
-    # Multiple possibilities to provide input data. Thus, we need checks in addition to argparse.
+
+def check_input_args(args):
+    """
+    Performs checks on parsed arguments to ensure valid input combinations for building or appending a database.
+    If necessary the arguments are modified to a common format.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Parser to be checked.
+
+    Returns
+    -------
+    argparse.Namespace
+        The validated parser.
+    """
     args_mod = [key_ for key_, value_ in vars(args).items() if value_ is not None]
     if ('g' in args_mod or 'c' in args_mod) and len(args_mod) > 1:
         for arg in args_mod:
@@ -70,6 +73,69 @@ def parse_cl_db(cl):
                 logger = setup_logger(__name__)
                 logger.error(f'Option -{arg} is missing. Either -g or -c or (-s, -t, -x) have to be provided.')
                 sys.exit(-1)
+    return args
+
+
+def parse_cl_db(cl):
+    """
+    Parse command line arguments for building a fragment-pair database.
+
+    Parameters:
+    ----------
+    cl : list of str
+        Command line arguments.
+
+    Returns
+    -------
+    argparse.Namespace
+        Parsed command line arguments.
+    """
+
+    parser = argparse.ArgumentParser(prog='artsm-build_db',
+                                     description='Building a database of fragment-pairs from atomistic simulations. '
+                                                 'Minimum requirements are an atomistic snapshot (e.g. pdb), '
+                                                 'trajectory (e.g. xtc) and a mapping file that indicates the mapping '
+                                                 'from atomistic to coarse-grained resolution. For a single simulation they can be'
+                                                 'provided with the arguments -s, -x, and -t or with a simulation '
+                                                 'config file (argument -c). For multiple simulations please specify a '
+                                                 'global config file with the argument -g.')
+    parser = parse_common_args(parser)
+    requiredNamed = parser.add_argument_group('required named arguments')
+    requiredNamed.add_argument('-d', '--database', type=str, dest='d', required=True,
+                               help='Output database file for storing fragments, fragment-pairs and their models.')
+
+    args = parser.parse_args(cl)
+
+    # Multiple possibilities to provide input data. Thus, we need checks in addition to argparse.
+    args = check_input_args(args)
+    return args
+
+
+def parse_cl_append(cl):
+    parser = argparse.ArgumentParser(prog='artsm-append',
+                                     description='Appending an existing database with new fragments and fragment pairs.' 
+                                                 'Required are the orgignal database -d and the output database -o. '
+                                                 'Moreover, an atomistic snapshot (e.g. pdb), '
+                                                 'trajectory (e.g. xtc) and a mapping file that indicates the mapping '
+                                                 'from atomistic to coarse-grained resolution is mandatory. '
+                                                 'For a single simulation they can be provided with the arguments '
+                                                 '-s, -x, and -t or with a simulation config file (argument -c). '
+                                                 'For multiple simulations please specify a global config file with '
+                                                 'the argument -g.')
+    parser = parse_common_args(parser)
+    # Specific arguments for parse_cl_append
+    requiredNamed = parser.add_argument_group('required named arguments')
+    requiredNamed.add_argument('-d', '--database', type=str, dest='d', required=True,
+                                 help='Existing database that will be appended.')
+    requiredNamed.add_argument('-o', '--output', type=str, dest='o', required=True,
+                               help='Output database that includes the appended data.')
+    parser.add_argument('--release', action='store_true', help='Additional release database is generated, which only'
+                                                               'contains the derived model without the '
+                                                               'training / atomistic data.')
+    args = parser.parse_args(cl)
+
+    # Multiple possibilities to provide input data. Thus, we need checks in addition to argparse.
+    args = check_input_args(args)
     return args
 
 

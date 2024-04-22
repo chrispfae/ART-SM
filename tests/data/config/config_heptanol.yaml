@@ -1,0 +1,3 @@
+s: "../atomistic_cg_data/heptanol.pdb"
+x: "../atomistic_cg_data/heptanol.xtc"
+t: "../mapping_files/hep.yaml"
