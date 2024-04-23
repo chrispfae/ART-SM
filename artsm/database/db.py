@@ -642,9 +642,12 @@ class DBdata:
         create a release output file that is the same as a copied database with the exception that the tables
         'data_fr_pairs' and 'data_frs' are empty. The release database is suitable for sharing with end-users.
 
-        Args:
-            filename (str): The path of the new database file.
-            release (bool): Whether to copy for release purpose.
+        Parameters
+        ----------
+        filename :str
+            The path of the new database file.
+        release : bool
+            Whether to copy for release purpose.
         """
         if os.path.exists(filename):
             os.remove(filename)
