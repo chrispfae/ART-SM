@@ -1,3 +1,3 @@
 s: "./heptanol.pdb"
 x: "./heptanol.xtc"
-t: ["./topol.yaml"]
+t: "./topol.yaml"
