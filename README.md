@@ -74,6 +74,6 @@ Kristyna Pluhackova - kristyna.pluhackova@simtech.uni-stuttgart.de
 Project Link: [https://github.com/chrispfae/ART-SM.git](https://github.com/chrispfae/ART-SM.git)
 
 [license-shield]: https://img.shields.io/github/license/chrispfae/ART-SM.svg?style=for-the-badge
-[license-url]: https://github.com/Jonas-Nicodemus/PINNs-based-MPC/blob/main/LICENSE
+[license-url]: https://github.com/chrispfae/ART-SM/blob/main/LICENSE
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/christian-pfaendner-ba1a53226/
