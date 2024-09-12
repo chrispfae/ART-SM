@@ -692,7 +692,7 @@ def _bonds_idx_mol(atoms, elements, bond_list):
     # Alphabetically order the first two elements: C-O same as O-C
     idx = bonds[:, 1] < bonds[:, 0]
     if np.any(idx):
-        bonds[idx, :2] = bonds[idx, [1, 0]]
+        bonds[idx, :2] = bonds[idx, 1::-1]
 
     # Group identical bonds
     bonds_unique = {}
