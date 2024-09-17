@@ -16,7 +16,7 @@ rdkit_bond_to_idx = {Chem.BondType.SINGLE: 1, Chem.BondType.DOUBLE: 2, Chem.Bond
                      Chem.BondType.AROMATIC: 7}
 
 
-def generate_rdkit_atom(element, name=None):
+def generate_rdkit_atom(element, name=None, charge=None):
     """
     Generate an RDKit atom object based on the given element symbol.
 
@@ -26,6 +26,8 @@ def generate_rdkit_atom(element, name=None):
         The element symbol.
     name : str, default None
         The name of the atom.
+    charge : int, default None
+        The charge of the atom. e.g. 2 for two positive charges, -1 for one negative charge.
 
     Returns
     -------
@@ -34,6 +36,8 @@ def generate_rdkit_atom(element, name=None):
     if len(element) > 1:
         element = f'{element[0]}{element[1:].lower()}'
     atom = Chem.Atom(element)
+    if charge is not None:
+        atom.SetFormalCharge(charge)
     if name is not None:
         info = Chem.AtomMonomerInfo()
         info.SetName(name)
@@ -55,7 +59,7 @@ def get_rdkit_bond_type(bond, table=None):
     return table[bond]
 
 
-def generate_rdkit_mol(elements, bond_list, atoms=None):
+def generate_rdkit_mol(elements, bond_list, atoms=None, charges=None):
     """
     Generate RDKit molecule from an array of elements and bond list.
 
@@ -72,6 +76,9 @@ def generate_rdkit_mol(elements, bond_list, atoms=None):
     atoms : np.ndarray, default None
         Array of atom names.
 
+    charges: dict
+        Dictionary of charges. Keys are atom names and values are charges.
+
     Returns
     -------
     mol : rdkit.Chem.rdchem.RWMol
@@ -83,7 +90,10 @@ def generate_rdkit_mol(elements, bond_list, atoms=None):
     # Add atoms
     for i in range(elements.size):
         if atoms is not None:
-            atom = generate_rdkit_atom(elements[i], atoms[i])
+            if charges is not None and atoms[i] in charges:
+                atom = generate_rdkit_atom(elements[i], atoms[i], charges[atoms[i]])
+            else:
+                atom = generate_rdkit_atom(elements[i], atoms[i])
         else:
             atom = generate_rdkit_atom(elements[i])
         mol.AddAtom(atom)
@@ -100,7 +110,7 @@ def generate_rdkit_mol(elements, bond_list, atoms=None):
     return mol
 
 
-def canonical_atom_order(atoms, A):
+def canonical_atom_order(atoms, A, charges=None):
     """
     Canonical atom order according to RDKit.
 
@@ -116,6 +126,8 @@ def canonical_atom_order(atoms, A):
         Array of atom names.
     A : np.ndarray
         Adjacency matrix of the molecule.
+    charges: dict
+        Dictionary of charges. Keys are atom names and values are charges.
 
     Returns
     -------
@@ -141,7 +153,7 @@ def canonical_atom_order(atoms, A):
     # Generate molecule
     # get bond list from adjacency matrix involving only heavy atoms
     bond_list = derive_bond_list(A_f)
-    mol = generate_rdkit_mol(elements_f, bond_list, atoms_f)
+    mol = generate_rdkit_mol(elements_f, bond_list, atoms_f, charges)
 
     # Reorder heavy atoms
     rank = list(Chem.CanonicalRankAtoms(mol, includeChirality=False))

@@ -64,7 +64,14 @@ def combine_mol_smiles(mols, smiles):
         logger.error(f'The smiles \'{smiles}\' does not match the pdb structure.')
         sys.exit(-1)
 
-    return mol_new
+    # Get charge info
+    charges = {}
+    for atom in mol_new.GetAtoms():
+        charge = atom.GetFormalCharge()
+        if charge != 0:
+            atom_name = atom.GetMonomerInfo().GetName().strip()
+            charges[atom_name] = charge
+    return mol_new, charges
 
 
 def derive_adj_atoms(mol):
@@ -295,7 +302,12 @@ def main():
     atom_order = [get_atom_order(mol) for mol in mols_raw_aa]
     smiles = [mol_smiles[name] for name in mol_names_aa]
 
-    mols_aa = [combine_mol_smiles(mol, s) for mol, s in zip(mols_raw_aa, smiles)]
+    mols_aa = []
+    charges = []
+    for mol, s in zip(mols_raw_aa, smiles):
+        mol, charge = combine_mol_smiles(mol, s)
+        mols_aa.append(mol)
+        charges.append(charge)
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=UserWarning)
@@ -319,7 +331,7 @@ def main():
             mapping_dict[mol_names_aa[i]] = f'{args.w}'
         else:
             mapping_dict[mol_names_aa[i]] = {'smiles': smiles[i], 'adj_atoms': adj_atoms[i], 'mapping': mapping[i],
-                                             'atom_order': atom_order[i]}
+                                             'charges': charges[i], 'atom_order': atom_order[i]}
     write_yaml(args.o, mapping_dict)
 
 

@@ -24,9 +24,10 @@ def _parse_to_biotite(molecule, coords):
     """
 
     biotite_mol = biotite.structure.AtomArray(molecule.n_atoms_f)
-    biotite_mol.add_annotation("charge", int)
     biotite_mol.atom_name = molecule.atoms_f.copy()
     biotite_mol.element = molecule.elements_f.copy()
+    charges = [molecule.charges[atom] if atom in molecule.charges else 0 for atom in molecule.atoms_f ]
+    biotite_mol.charge = charges
     biotite_mol.coord = coords.copy()
     biotite_mol.bonds = biotite.structure.BondList(molecule.n_atoms_f, molecule.bond_list_f.copy())
 

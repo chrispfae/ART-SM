@@ -190,7 +190,7 @@ def _extend_connection(fr1_atoms, fr2_atoms, A_f, connection):
 class Molecule:
     """Class that represents the information of one molecule."""
 
-    def __init__(self, smiles, atoms, A, mapping, atom_order=None):
+    def __init__(self, smiles, atoms, A, mapping, charges, atom_order=None):
         """
         Parameters
         ----------
@@ -223,6 +223,8 @@ class Molecule:
         self.masses = guess_masses(self.elements)
         self.masses_f = guess_masses(self.elements_f)
         self.masses_h = guess_masses(self.elements_h)
+
+        self.charges = charges
 
         if atom_order is not None:
             self.atom_order = atom_order 

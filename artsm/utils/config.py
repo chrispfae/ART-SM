@@ -201,7 +201,7 @@ def check_config_db(config):
                                  f'However, the following water models are supported: {supported_water_models.keys()}')
                     sys.exit(-1)
             else:
-                required_keys = ['smiles', 'adj_atoms', 'mapping']
+                required_keys = ['smiles', 'adj_atoms', 'mapping', 'charges']
                 check_keys(config_mol, required_keys)
                 remove_keys(config_mol, required_keys)
 
@@ -231,9 +231,9 @@ def check_config_bm(config):
                                  f'However, the following water models are supported: {supported_water_models.keys()}')
                     sys.exit(-1)
             else:
-                required_keys = ['smiles', 'adj_atoms', 'mapping']
+                required_keys = ['smiles', 'adj_atoms', 'mapping', 'charges']
                 check_keys(config_mol, required_keys)
-                valid_keys = ['smiles', 'adj_atoms', 'mapping', 'atom_order']
+                valid_keys = ['smiles', 'adj_atoms', 'mapping', 'charges', 'atom_order']
                 remove_keys(config_mol, valid_keys)
 
 

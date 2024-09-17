@@ -181,7 +181,7 @@ def _parse_atoms(atoms):
     return atoms_parsed, bond_types
 
 
-def _parse_adj_atoms(adj_atoms):
+def _parse_adj_atoms(adj_atoms, charges=None):
     """
     Derive adjacency matrix and respective atoms from config dictionary.
 
@@ -189,6 +189,8 @@ def _parse_adj_atoms(adj_atoms):
     ----------
     adj_atoms : dict
         Contains the information of field 'adj_atoms' of a simulation config file.
+    charges : dict
+        Contains the information of field 'charges' of a simulation config file.
 
     Returns
     -------
@@ -211,7 +213,7 @@ def _parse_adj_atoms(adj_atoms):
         A[(atom1 == atoms), idx] = bond_types
 
     # Canonical ordering of atoms
-    atoms_ordered = canonical_atom_order(atoms, A)
+    atoms_ordered = canonical_atom_order(atoms, A, charges)
     idx = element_idx(atoms_ordered, atoms)
     # Reorder adjacency matrix
     A_ordered = A[idx][:, idx]
@@ -244,13 +246,17 @@ def _parse_topology(molecules, rng):
             else:
                 smiles = molecule['smiles']
                 adj_atoms = molecule['adj_atoms']
-                atoms, A = _parse_adj_atoms(adj_atoms)
+                charges = molecule['charges']
+                # Charges can be either None, empty dict, or dict.
+                if charges is None:
+                    charges = {}
+                atoms, A = _parse_adj_atoms(adj_atoms, charges)
                 mapping = molecule['mapping']
                 if 'atom_order' in molecule:
                     atom_order = np.array(molecule['atom_order'])
-                    molecules[molecule_name] = Molecule(smiles, atoms, A, mapping, atom_order)
+                    molecules[molecule_name] = Molecule(smiles, atoms, A, mapping, charges, atom_order)
                 else:
-                    molecules[molecule_name] = Molecule(smiles, atoms, A, mapping)
+                    molecules[molecule_name] = Molecule(smiles, atoms, A, mapping, charges)
 
     return molecules
 
