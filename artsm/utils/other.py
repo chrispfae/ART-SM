@@ -126,3 +126,13 @@ def numpy_pairwise_combinations(x):
     """Create all pairwise combinations of elements in a numpy array."""
     idx = np.stack(np.triu_indices(len(x), k=1), axis=-1)
     return x[idx]
+
+
+def create_smiles_con(elements, bond_types):
+    """Create SMILES string for connector."""
+    assert len(elements) == 4
+    assert len(bond_types) == 3
+    bond_to_string = {1: '', 2: '=', 3: '#', 4: '$'}
+    bond_strings = [bond_to_string[bond] for bond in bond_types]
+    smiles = f'{elements[0]}{bond_strings[0]}{elements[1]}{bond_strings[1]}{elements[2]}{bond_strings[2]}{elements[3]}'
+    return smiles

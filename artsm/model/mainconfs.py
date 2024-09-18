@@ -1,5 +1,6 @@
 import os
 
+from MDAnalysis.topology.guessers import guess_types
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.cluster.hierarchy import linkage, fcluster
@@ -24,7 +25,7 @@ def _plot_dihedrals(data, zmatrix, path):
     """
     assert data.shape[1] == len(zmatrix)
     for i in range(data.shape[1]):
-        filename = os.path.join(path, f'dihedral_{"_".join(zmatrix[i])}.png')
+        filename = os.path.join(path, f'dihedral_number{i}_elements{"_".join(guess_types(zmatrix[i]))}.png')
         plot_histogram(data[:, i], filename, title='Dihedral angle histogram', xlab='Dihedral angle')
 
 

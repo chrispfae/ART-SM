@@ -10,6 +10,7 @@ from artsm.model.training import probabilities_one_bead
 from artsm.utils.angles import calc_angle, calc_dihedral
 from artsm.utils.bond_angle_lists import derive_bond_list
 from artsm.utils.containers import extract_atoms_f, extract_atoms_h
+from artsm.utils.fileparsing import write_smiles
 from artsm.utils.other import center_of_mass, mda_selection, setup_logger
 from artsm.utils.smiles import canonical_atom_order
 
@@ -349,6 +350,7 @@ class Fragment:
             with the final probabilities is generated.
         """
         fr_path = os.path.join(path, 'mainconfs')
+        write_smiles(os.path.join(fr_path, 'smiles.txt'), self.smiles)
         labels, representative_idx = main_conformations(self._zmatrix_data, self.zmatrix, fr_path)
         self._main_coords = self._coords_data[representative_idx]
 

@@ -10,7 +10,7 @@ from artsm.model.mainconfs import main_conformations
 from artsm.utils.angles import calc_dihedral
 from artsm.utils.containers import reorder_atom_group
 from artsm.utils.fileparsing import write_smiles
-from artsm.utils.other import mda_selection
+from artsm.utils.other import create_smiles_con, mda_selection
 
 
 class FragmentPair:
@@ -239,13 +239,13 @@ class FragmentPair:
         self._main_internal1 = self._fr1_zmatrix_data[representative_idx1]
 
         fr2_path = os.path.join(path, 'mainconfs2')
-        write_smiles(os.path.join(fr2_path, 'smiles.txt'), self.fr1.smiles)
+        write_smiles(os.path.join(fr2_path, 'smiles.txt'), self.fr2.smiles)
         labels2, representative_idx2 = main_conformations(self._fr2_zmatrix_data, self.fr2.zmatrix, fr2_path)
         self._main_coords2 = self._fr2_coords_data[representative_idx2]
         self._main_internal2 = self._fr2_zmatrix_data[representative_idx2]
 
         dihedral_path = os.path.join(path, 'dihedral')
-        write_smiles(os.path.join(dihedral_path, 'smiles.txt'), "".join(self.con.elements))
+        write_smiles(os.path.join(dihedral_path, 'smiles.txt'), create_smiles_con(self.con.elements, self.con.bond_types))
         labels_dihedral, representative_dihedral = main_conformations(self._dihedral_data,
                                                                       [self.con.elements], dihedral_path)
         self._main_dihedrals = self._dihedral_data[representative_dihedral]
