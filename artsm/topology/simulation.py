@@ -628,7 +628,7 @@ class Simulation:
 
         logger.info('Resolve clashing atoms.')
         # Resolve atom clashes
-        clashing_atoms(aa_coords, aa.dimensions, rng)
+        clashing_atoms(aa_coords, aa.dimensions, rng, radius=0.15)
         aa.positions = aa_coords
 
         return aa

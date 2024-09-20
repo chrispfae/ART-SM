@@ -35,9 +35,9 @@ def _get_dist_func(box_dims=None):
             return getattr(_distances['serial'], 'calc_distance_array_triclinic'), box
 
 
-def _clashing_atoms_fastns(coords, box_dims=None, ref=None):
+def _clashing_atoms_fastns(coords, radius=0.15, box_dims=None, ref=None):
     """
-    Find clashing atoms, i.e. atoms that are closer than 0.15 angstrom.
+    Find clashing atoms, i.e. atoms that are closer than radius (default=0.15) angstrom.
 
     If a reference atom is given (ref), clashes between the reference atom and the given coords are determined.
     Otherwise, coords are compared with themselves.
@@ -50,6 +50,8 @@ def _clashing_atoms_fastns(coords, box_dims=None, ref=None):
     ----------
     coords : numpy.ndarray
         Atom coordinates.
+    radius : float, default 0.15
+        Distance at which atoms are considered clashing.
     box_dims : numpy.ndarray, default None
         Box dimensions of the simulation cell.
     ref : numpy.ndarray
@@ -60,14 +62,13 @@ def _clashing_atoms_fastns(coords, box_dims=None, ref=None):
         The indices of the clashing atoms in the atom coordinates array.
     """
     coords_float = coords.copy().astype(np.float32)
-    radius = 0.15
 
     if box_dims is not None:
         nb_search = FastNS(radius, coords_float, box_dims.astype(np.float32), pbc=True)
     else:
         logger = setup_logger(__name__)
         logger.warning('Input pdb does not contain information on the simulation box. '
-                       'Orthogonal Pseudo-box will be constructed.')
+                       'Orthogonal Pseudo-box will be constructed. Periodic boundary conditions will be not considered.')
         lmax = coords.max(axis=0)
         lmin = coords.min(axis=0)
         pseudobox = np.empty(6)
@@ -121,9 +122,9 @@ def _shift_atoms(coords, idx_pairs, rng):
         coords[a2] += rng.standard_normal() * 0.01
 
 
-def clashing_atoms(coords, box_dims, rng):
+def clashing_atoms(coords, box_dims, rng, radius=0.15):
     """
-    Find and shift atoms that are closer than 0.15 angstrom.
+    Find and shift atoms that are closer than radius (default=0.15) angstrom.
     Parameters
     ----------
     coords : numpy.ndarray
@@ -132,12 +133,14 @@ def clashing_atoms(coords, box_dims, rng):
         Box dimensions of the simulation cell.
     rng : np.random.default_rng()
         Default random number generator of numpy.
+    radius : float, default 0.15
+        Distance at which atoms are considered clashing.
     """
-    clashing_atom_pairs = _clashing_atoms_fastns(coords, box_dims)
+    clashing_atom_pairs = _clashing_atoms_fastns(coords, radius, box_dims)
     while clashing_atom_pairs.size > 0:
         _shift_atoms(coords, clashing_atom_pairs, rng)
         # Get clashing atoms
         idx = np.unique(clashing_atom_pairs.flatten())
-        clashing_atom_pairs_new = _clashing_atoms_fastns(coords, box_dims=box_dims, ref=coords[idx])
+        clashing_atom_pairs_new = _clashing_atoms_fastns(coords, radius, box_dims=box_dims, ref=coords[idx])
         clashing_atom_pairs_new = [[idx[i], j] for i, j in clashing_atom_pairs_new]
         clashing_atom_pairs = np.array([[i, j] for i, j in clashing_atom_pairs_new if i != j])
