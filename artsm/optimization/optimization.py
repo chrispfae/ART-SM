@@ -64,6 +64,12 @@ def _rotate_coords(coords, alpha, beta, origin=np.zeros(3)):
     return coords_mod
 
 
+class EarlyStop(Exception):
+    """Exception raised when Early Stop is triggered during the optimization of molecules consisting of one bead."""
+    def __init__(self, xk):
+        self.xk = xk
+
+
 def _angle_difference(angle1, angle2):
     """
     Calculate the difference between two angles in degrees.
@@ -206,6 +212,8 @@ def _f_one_bead_mol(x, conf, coords_neighbors, coords_bead, box_dims):
 
     # Calculate objective
     dist = distances.distance_array(conf_rot, coords_neighbors, box_dims).flatten()
+    if np.all(dist > 1.0):
+        raise EarlyStop(x)
     obj += np.sum(np.exp((-20.) * (dist - 1.3)))
 
     return obj
@@ -451,11 +459,11 @@ def optimize_one_bead_mol(conf, coords_neighbors, bead_coord, box_dims, method='
         options = {}
 
     # Optimization
-    if coords_neighbors.size > 0:
-        start_val = np.zeros(2)
+    start_val = np.zeros(2)
+    try:
         opt = optimize.minimize(_f_one_bead_mol, start_val, method=method,
                                 args=(conf, coords_neighbors, bead_coord, box_dims), options=options)
         coords_optimized = _rotate_coords(conf, opt.x[0], opt.x[1], bead_coord)
-        return coords_optimized
-    else:
-        return conf
+    except EarlyStop as e:
+        coords_optimized = _rotate_coords(conf, e.xk[0], e.xk[1], bead_coord)
+    return coords_optimized
