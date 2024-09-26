@@ -4,49 +4,35 @@ import sys
 from MDAnalysis.analysis import distances
 import numpy as np
 from scipy import optimize
-from scipy.spatial.distance import cdist
 
 from artsm.utils.angles import calc_angle, calc_dihedral
 from artsm.utils.containers import element_idx
 from artsm.utils.other import setup_logger
 
 
-def _Rx(angle):
+def _R(alpha, beta):
     """
-    Return the rotation matrix to rotate coordinates around the x-axis by 'angle' degree.
-
-    Angle has to be -pi <= 'angle' >= pi
+    Return the rotation matrix to rotate around the x-axis by alpha and around the y-axis by beta.
+    alpha and beta should be in radians.
 
     Parameters
     ----------
-    angle : float
-
+    alpha: float
+        Angle to rotate around the x-axis.
+    beta: float
+        Angle to rotate around the y-axis.
     Returns
     -------
     numpy.ndarray
         The rotation matrix.
     """
-    return np.array([[1, 0, 0], [0, math.cos(angle), -math.sin(angle)],
-                     [0, math.sin(angle), math.cos(angle)]])
-
-
-def _Ry(angle):
-    """
-    Return the rotation matrix to rotate coordinates around the y-axis by 'angle' degree.
-
-    Angle has to be -pi <= 'angle' >= pi
-
-    Parameters
-    ----------
-    angle : float
-
-    Returns
-    -------
-    numpy.ndarray
-        The rotation matrix.
-    """
-    return np.array([[math.cos(angle), 0, math.sin(angle)], [0, 1, 0],
-                     [-math.sin(angle), 0, math.cos(angle)]])
+    sin_alpha = math.sin(alpha)
+    cos_alpha = math.cos(alpha)
+    sin_beta = math.sin(beta)
+    cos_beta = math.cos(beta)
+    return np.array([[cos_beta, sin_alpha*sin_beta, sin_beta*cos_alpha],
+                     [0, cos_alpha, -1*sin_alpha],
+                     [(-1)*sin_beta, sin_alpha*cos_beta, cos_alpha*cos_beta]])
 
 
 def _rotate_coords(coords, alpha, beta, origin=np.zeros(3)):
@@ -73,8 +59,7 @@ def _rotate_coords(coords, alpha, beta, origin=np.zeros(3)):
 
     """
     coords_mod = coords - origin
-    coords_mod = (_Rx(alpha) @ coords_mod.T).T
-    coords_mod = (_Ry(beta) @ coords_mod.T).T
+    coords_mod = coords_mod @ _R(alpha, beta).T
     coords_mod = coords_mod + origin
     return coords_mod
 
