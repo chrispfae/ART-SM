@@ -549,7 +549,8 @@ class Simulation:
                 conf += (bead_coord - center_of_mass(conf, molecule.masses))
                 coords_neighbors = aa.select_atoms(f'point {bead_coord[0][0]} {bead_coord[0][1]} {bead_coord[0][2]} '
                                                    f'{d_max + 1.5}').positions
-                conf = optimize_one_bead_mol(conf, coords_neighbors, bead_coord, aa.dimensions, options={'eps': 1e-5})
+                conf = optimize_one_bead_mol(conf, coords_neighbors, bead_coord, aa.dimensions,
+                                             options={'eps': 1e-5}, rng=rng)
                 aa_coords[counter: counter + molecule.n_atoms] = conf.copy()
             elif len(molecule.fragments) == 1:
                 fr = next(iter(molecule.fragments.values()))
@@ -560,7 +561,8 @@ class Simulation:
                 d_max = sphere_radius(conf, bead_coord)
                 coords_neighbors = aa.select_atoms(f'point {bead_coord[0][0]} {bead_coord[0][1]} {bead_coord[0][2]} '
                                                    f'{d_max + 1.5}').positions
-                conf = optimize_one_bead_mol(conf, coords_neighbors, bead_coord, aa.dimensions, options={'eps': 1e-5})
+                conf = optimize_one_bead_mol(conf, coords_neighbors, bead_coord, aa.dimensions,
+                                             options={'eps': 1e-5}, rng=rng)
                 conf = conf[molecule.atom_order_idx]
                 aa_coords[counter: counter + molecule.n_atoms] = conf.copy()
             else:

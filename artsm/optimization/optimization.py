@@ -428,7 +428,7 @@ def optimize_molecule(molecule, database, method='L-BFGS-B', options=None):
         _opt_inter_frs(molecule, database, method, options)
 
 
-def optimize_one_bead_mol(conf, coords_neighbors, bead_coord, box_dims, method='L-BFGS-B', options=None):
+def optimize_one_bead_mol(conf, coords_neighbors, bead_coord, box_dims, method='L-BFGS-B', options=None, rng=None):
     """
     Optimize the orientation of the current one bead molecules such that the distance to any neighboring atom
     is ideally more than 1 angstrom.
@@ -449,17 +449,40 @@ def optimize_one_bead_mol(conf, coords_neighbors, bead_coord, box_dims, method='
         Optimizer method. See scipy minimize.
     options : dict, default {}
         Optimizer options. See scipy minimize.
+    rng : np.random.default_rng()
+        Default random number generator of numpy.
 
     Returns
     -------
     numpy.ndarray
         Optimized coordinates of the current one bead molecule.
     """
+    # Randomly rotate the current conformation 20 times or until all distances to neighbor atoms are larger than
+    # 1.0 angstrom. If all 20 random rotations are performed the rotation leading to the largest minimum distance is
+    # stored and used as a starting structure for the actual optimization.
+    if rng is None:
+        rng = np.random.default_rng()
+    dist_min = 0.
+    alpha_min = None
+    beta_min = None
+    for _ in range(20):
+        alpha = rng.uniform() * np.pi * 2
+        beta = rng.uniform() * np.pi * 2
+        coords_rot = _rotate_coords(conf, alpha, beta, bead_coord)
+        dist = distances.distance_array(coords_rot, coords_neighbors, box_dims).flatten()
+        if np.all(dist > 1.0):
+            return coords_rot
+        else:
+            dist_min_current = np.min(dist)
+            if dist_min_current < dist_min:
+                alpha_min = alpha
+                beta_min = beta
+
     if options is None:
         options = {}
 
     # Optimization
-    start_val = np.zeros(2)
+    start_val = np.array([alpha_min, beta_min])
     try:
         opt = optimize.minimize(_f_one_bead_mol, start_val, method=method,
                                 args=(conf, coords_neighbors, bead_coord, box_dims), options=options)
