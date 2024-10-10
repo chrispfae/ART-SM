@@ -15,7 +15,7 @@ from artsm.utils.bond_angle_lists import derive_bond_list, derive_angle_list
 from artsm.utils.containers import type_random_value, element_idx, idx_atoms_f, reorder_atom_group
 from artsm.utils.fileparsing import join_path, read_yaml
 from artsm.utils.other import setup_logger, center_of_mass, mda_selection
-from artsm.utils.clashing_atoms import clashing_atoms
+from artsm.utils.clashing_atoms import clashing_atoms, find_neighbors
 from artsm.utils.smiles import canonical_atom_order
 from artsm.water.model import get_water_model, Water
 from artsm.water.utils import correct_water
@@ -259,6 +259,20 @@ def _parse_topology(molecules, rng):
                     molecules[molecule_name] = Molecule(smiles, atoms, A, mapping, charges)
 
     return molecules
+
+
+def _create_tracking(cg, molecules):
+    counter = 0
+    tracking_cg_to_aa = np.empty(len(cg.atoms), dtype=object)
+    for i, bead in enumerate(cg.atoms):
+        molecule = molecules[bead.resname]
+        if isinstance(molecule, Water) or len(molecule.fragments) == 1:
+            tracking_cg_to_aa[i] = np.arange(counter, counter + molecule.n_atoms)
+            counter += molecule.n_atoms
+        else:
+            tracking_cg_to_aa[i] = np.arange(counter, counter + molecule.fragments[bead.name].n_atoms)
+            counter += molecule.fragments[bead.name].n_atoms
+    return tracking_cg_to_aa
 
 
 class Simulation:
@@ -536,36 +550,52 @@ class Simulation:
         aa.positions = aa_coords
         counter = 0
         water = None
+        # For each cg bead, find neighbor beads.
+        # This allows for a local optimization approach for molecules consisting of only one bead and water.
+        # We also need to keep tracking of the bead (not molecule) id and the mapping of bead ids to atomistic atom ids.
+        cg_neighbors = find_neighbors(cg.atoms.positions, cg.dimensions, threshold=10)
+        tracking_cg_to_aa = _create_tracking(cg, self.molecules)
+        bead_number = 0
+
         logger = setup_logger(__name__)
         logger.info('Prediction and optimization')
         for i, cg_residue in enumerate(cg.residues):
             if i % 1000 == 0 and i != 0:
                 logger.info(f'Finished {i} molecules.')
             molecule = self.molecules[cg_residue.resname]
-            if isinstance(molecule, Water):
-                water = cg_residue.resname
-                conf, d_max = molecule.predict_confs(rng)
+            if isinstance(molecule, Water) or len(molecule.fragments) == 1:
+                # Predict conformation and translate to bead position
                 bead_coord = cg_residue.atoms.positions
-                conf += (bead_coord - center_of_mass(conf, molecule.masses))
-                coords_neighbors = aa.select_atoms(f'point {bead_coord[0][0]} {bead_coord[0][1]} {bead_coord[0][2]} '
-                                                   f'{d_max + 1.5}').positions
-                conf = optimize_one_bead_mol(conf, coords_neighbors, bead_coord, aa.dimensions,
-                                             options={'eps': 1e-5}, rng=rng)
+                if isinstance(molecule, Water):
+                    if water is None:
+                        water = cg_residue.resname
+                    conf, d_max = molecule.predict_confs(rng)
+                    conf += (bead_coord - center_of_mass(conf, molecule.masses))
+                else:
+                    fr = next(iter(molecule.fragments.values()))
+                    conf = fr.predict_confs(rng)
+                    conf += (bead_coord - center_of_mass(conf, fr.masses))
+                    d_max = sphere_radius(conf, bead_coord)
+
+                # Select neighbor atoms
+                cg_neighbors_current = np.array(cg_neighbors[bead_number])
+                relevant_beads = cg_neighbors_current[cg_neighbors_current < bead_number]
+                if relevant_beads.size == 0:
+                    coords_neighbors == np.array([])
+                else:
+                    aa_temp = aa[np.concatenate(tracking_cg_to_aa[relevant_beads])]  # select potential neighbor atoms.
+                    coords_neighbors = aa_temp.select_atoms(f'point {bead_coord[0][0]} {bead_coord[0][1]} '
+                                                            f'{bead_coord[0][2]} {d_max + 1.0}').positions
+
+                if coords_neighbors.size > 0:
+                    conf = optimize_one_bead_mol(conf, coords_neighbors, bead_coord, aa.dimensions,
+                                                 options={'eps': 1e-5}, rng=rng)
                 aa_coords[counter: counter + molecule.n_atoms] = conf.copy()
-            elif len(molecule.fragments) == 1:
-                fr = next(iter(molecule.fragments.values()))
-                conf = fr.predict_confs(rng)
-                bead_coord = cg_residue.atoms.positions
-                conf += (bead_coord - center_of_mass(conf, fr.masses))
-                conf = rotate_random(conf, cg_residue.atoms.positions, rng)
-                d_max = sphere_radius(conf, bead_coord)
-                coords_neighbors = aa.select_atoms(f'point {bead_coord[0][0]} {bead_coord[0][1]} {bead_coord[0][2]} '
-                                                   f'{d_max + 1.5}').positions
-                conf = optimize_one_bead_mol(conf, coords_neighbors, bead_coord, aa.dimensions,
-                                             options={'eps': 1e-5}, rng=rng)
-                conf = conf[molecule.atom_order_idx]
-                aa_coords[counter: counter + molecule.n_atoms] = conf.copy()
+
+                # Update bead tracking
+                bead_number += 1
             else:
+                counter_local = 0
                 for fr1_name, fr2_name in molecule.loop_order:
                     fr_pair = molecule.fr_pairs[(fr1_name, fr2_name)]
                     fr1 = fr_pair.fr1
@@ -582,9 +612,12 @@ class Simulation:
                             sys.exit(-1)
                         conf1 += (cg_coord1 - center_of_mass(conf1, fr1.masses_f))
                         fr1.pred_coords = conf1.copy()
+                        # Update tracking cg to aa
+                        tracking_cg_to_aa[bead_number] = np.arange(counter + counter_local, counter + counter_local + fr1.n_atoms)
+                        counter_local += fr1.n_atoms
                     else:
                         _, _, conf2, internal2, dihedral = fr_pair.predict_confs(cg_residue, rng,
-                                                                                    pred_internal1=fr1.pred_internal)
+                                                                                 pred_internal1=fr1.pred_internal)
 
                     fr2.pred_internal = internal2
                     fr_pair.pred_dihedral = dihedral[0]
@@ -597,6 +630,12 @@ class Simulation:
                         sys.exit(-1)
                     conf2 += (cg_coord2 - center_of_mass(conf2, fr2.masses_f))
                     fr2.pred_coords = conf2.copy()
+                    # Update tracking cg to aa
+                    tracking_cg_to_aa[bead_number] = np.arange(counter + counter_local, counter + counter_local + fr2.n_atoms)
+                    counter_local += fr2.n_atoms
+
+                # Update bead tracking
+                bead_number += len(cg_residue.atoms)
 
                 optimize_molecule(molecule, database)
 

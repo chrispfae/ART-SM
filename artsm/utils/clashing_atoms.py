@@ -1,3 +1,4 @@
+from collections import defaultdict
 import importlib
 
 from MDAnalysis.lib.nsgrid import FastNS
@@ -144,3 +145,44 @@ def clashing_atoms(coords, box_dims, rng, radius=0.15):
         clashing_atom_pairs_new = _clashing_atoms_fastns(coords, radius, box_dims=box_dims, ref=coords[idx])
         clashing_atom_pairs_new = [[idx[i], j] for i, j in clashing_atom_pairs_new]
         clashing_atom_pairs = np.array([[i, j] for i, j in clashing_atom_pairs_new if i != j])
+
+
+def find_neighbors(coords, box_dims, threshold=10):
+    """
+    For each atom, find the at least `threshold` neighbors.
+    Parameters
+    ----------
+    coords : numpy.ndarray
+        Atom coordinates.
+    box_dims : numpy.ndarray
+        Box dimensions of the simulation cell.
+    threshold : int, default 10
+        The minimum number of neighbors to find for each atom.
+    Returns
+    -------
+    dict
+        A dictionary containing for each atom a list of neighbor atoms.
+        The number of neighbors can be much more than the specified threshold.
+    """
+    # Adjust the threshold if the number of atoms is smaller than the threshold.
+    if coords.shape[0] - 1 < threshold:
+        threshold = coords.shape[0]
+
+    # Determine for each atom all neighbors within 10 angstrom.
+    # If any atom does not have at least `threshold` atoms, increase the considered distance by 5 angstrom.
+    # Repeat this process.
+    r = 5.
+    r_to_low = True
+    while r_to_low:
+        r += 5.
+        neighbor_pairs = _clashing_atoms_fastns(coords, radius=r, box_dims=box_dims)
+        neighbors = defaultdict(list)
+        for i, j in neighbor_pairs:
+            neighbors[i].append(j)
+            neighbors[j].append(i)
+        r_to_low = False
+        for _, j in neighbors.items():
+            if len(j) < threshold:
+                r_to_low = True
+                break
+    return neighbors
