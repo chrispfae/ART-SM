@@ -581,7 +581,7 @@ class Simulation:
                 cg_neighbors_current = np.array(cg_neighbors[bead_number])
                 relevant_beads = cg_neighbors_current[cg_neighbors_current < bead_number]
                 if relevant_beads.size == 0:
-                    coords_neighbors == np.array([])
+                    coords_neighbors = np.array([])
                 else:
                     aa_temp = aa[np.concatenate(tracking_cg_to_aa[relevant_beads])]  # select potential neighbor atoms.
                     coords_neighbors = aa_temp.select_atoms(f'point {bead_coord[0][0]} {bead_coord[0][1]} '
