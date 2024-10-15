@@ -462,9 +462,9 @@ def optimize_one_bead_mol(conf, coords_neighbors, bead_coord, box_dims, method='
     # stored and used as a starting structure for the actual optimization.
     if rng is None:
         rng = np.random.default_rng()
-    dist_min = 0.
-    alpha_min = None
-    beta_min = None
+    dist_min = np.inf
+    alpha_min = 0.
+    beta_min = 0.
     for _ in range(20):
         alpha = rng.uniform() * np.pi * 2
         beta = rng.uniform() * np.pi * 2
@@ -477,6 +477,7 @@ def optimize_one_bead_mol(conf, coords_neighbors, bead_coord, box_dims, method='
             if dist_min_current < dist_min:
                 alpha_min = alpha
                 beta_min = beta
+                dist_min = dist_min_current
 
     if options is None:
         options = {}
