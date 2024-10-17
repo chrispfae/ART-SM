@@ -273,4 +273,6 @@ def parse_cl_generate_posre(cl):
                         help='Output itp file. Prefix is automatically added for different molecules.')
     parser.add_argument('-r', nargs='?', type=str,
                         help='Output structure file for position restraint simulation, e.g. gro file.')
+    parser.add_argument('--restrain_water', action='store_true', help="Flat bottom position restraint files"
+                                                                      "are generated for water.")
     return parser.parse_args(cl)

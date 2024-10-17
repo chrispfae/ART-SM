@@ -22,11 +22,11 @@ def extract_mapping(filenames):
         dict_.update(read_yaml(filename))
 
     mapping = {}
-    water = None
+    water = []
     for mol, data in dict_.items():
         if isinstance(data, str) and data in supported_water_models:
             mapping[mol] = {atom: 'water' for atom in supported_water_models[data]['atoms']}
-            water = mol
+            water.append(mol)
         elif isinstance(data, dict) and 'mapping' in data:
             swapped_dict = {value: key for key, values in data['mapping'].items() for value in values}
             mapping[mol] = swapped_dict
@@ -76,11 +76,17 @@ def _atomistic_universe(cg, atom_order):
     return u
 
 
-def posre(aa, cg, mapping):
-    for atom in aa.atoms:
+def posre(aa, cg, mapping, restrain_water):
+    logger = setup_logger(__name__)
+    for i, atom in enumerate(aa.atoms):
+        if i % 10_000 == 0:
+            logger.info(f'Processed {i} atoms')
         cg_bead = mapping[atom.resname][atom.name]
         if cg_bead == 'water':
-            selection = f'resid {atom.resid}'
+            if restrain_water:
+                selection = f'resid {atom.resid}'
+            else:
+                continue
         else:
             selection = f'resid {atom.resid} and name {cg_bead}'
         atom.position = cg.select_atoms(selection)[0].position
@@ -100,10 +106,12 @@ def bead_distances(coords):
     return np.mean(minima)
 
 
-def output_posre_itp(aa_posre, radius, filename):
+def output_posre_itp(aa_posre, radius, filename, water, restrain_water):
     residues_seen = []
     for residue in aa_posre.residues:
         if residue.resname in residues_seen:
+            continue
+        if residue.resname in water and not restrain_water:
             continue
         else:
             atoms = residue.atoms.names
@@ -126,9 +134,15 @@ def main():
         cg = mda.Universe(args.c)
     atom_order = derive_atom_order(args.t, cg)
     aa = _atomistic_universe(cg, atom_order)
-    posre(aa, cg, mapping)
-    if water is not None:
-        aa = correct_water(aa, water)
+    box_dims = aa.dimensions
+    posre(aa, cg, mapping, args.restrain_water)
+    if args.restrain_water:
+        for water_mol in water:
+            aa = correct_water(aa, water_mol)
+    elif water:
+        selection = f'not ({mda_selection(water, "resname")})'
+        aa = mda.Merge(aa.select_atoms(selection))
+        aa.dimensions = box_dims
 
     if args.r is not None:
         output_gro_xtc(aa, args.r)
@@ -139,8 +153,9 @@ def main():
         logger = setup_logger(__name__)
         logger.info(f'Recommended value for parameter R in flat bottom position restraint: {recommended_radius} nm.')
         logger.info(f'I will use this value for generating the position restraint itp file')
-        output_posre_itp(aa, recommended_radius, args.i)
+        output_posre_itp(aa, recommended_radius, args.i, water, args.restrain_water)
 
 
 if __name__ == '__main__':
     main()
+
