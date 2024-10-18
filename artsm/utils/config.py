@@ -6,7 +6,7 @@ from artsm.topology.simulation import parse_snapshot, Simulation
 from artsm.utils.containers import check_keys, remove_keys
 from artsm.utils.fileparsing import join_path, read_yaml
 from artsm.utils.other import setup_logger
-from artsm.water.data import supported_water_models
+from artsm.predefined_molecules.data import supported_water_types, supported_ion_types
 
 
 def parse_args(args):
@@ -195,10 +195,11 @@ def check_config_db(config):
         remove_keys(config_sim, required_keys + ['time_step'])
         for config_mol in config_sim['t'].values():
             if isinstance(config_mol, str):
-                if config_mol not in supported_water_models:
+                if config_mol not in supported_water_types and config_mol not in supported_ion_types:
                     logger = setup_logger(__name__)
-                    logger.error(f'The specified Water model {config_mol} is not available. '
-                                 f'However, the following water models are supported: {supported_water_models.keys()}')
+                    logger.error(f'The requested predefined molecule {config_mol} is not available. '
+                                 f'However, the water types {supported_water_types.keys()} and ion types '
+                                 f'{supported_ion_types.keys()} are supported.')
                     sys.exit(-1)
             else:
                 required_keys = ['smiles', 'adj_atoms', 'mapping', 'charges']
@@ -225,10 +226,11 @@ def check_config_bm(config):
         remove_keys(config_sim, required_keys)
         for config_mol in config_sim['t'].values():
             if isinstance(config_mol, str):
-                if config_mol not in supported_water_models:
+                if config_mol not in supported_water_types and config_mol not in supported_ion_types:
                     logger = setup_logger(__name__)
-                    logger.error(f'The specified Water model {config_mol} is not available. '
-                                 f'However, the following water models are supported: {supported_water_models.keys()}')
+                    logger.error(f'The requested predefined molecule {config_mol} is not available. '
+                                 f'However, the water types {supported_water_types.keys()} and ion types '
+                                 f'{supported_ion_types.keys()} are supported.')
                     sys.exit(-1)
             else:
                 required_keys = ['smiles', 'adj_atoms', 'mapping', 'charges']

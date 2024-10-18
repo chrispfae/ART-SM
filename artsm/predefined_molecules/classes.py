@@ -1,41 +1,10 @@
-import sys
-
 from artsm.model.models import ModelOneBead
-from artsm.utils.other import setup_logger
-from artsm.water.data import supported_water_models
 
 
-def get_water_model(model='TIP3P'):
-    """
-    Return a Water object given its name.
-
-    Parameters
-    ----------
-    model : str, default 'TIP3P'
-        The name of the water model to retrieve.
-
-    Returns
-    -------
-    Water
-
-    Raises
-    ------
-    SystemExit
-        If the specified water model is not available.
-    """
-    if model in supported_water_models:
-        return Water(**supported_water_models[model])
-    else:
-        logger = setup_logger(__name__)
-        logger.error(f'The specified Water model {model} is not available. '
-                     f'However, the following water models are supported: {supported_water_models.keys()}')
-        sys.exit(-1)
-
-
-class Water:
+class PredefMol:
     def __init__(self, atoms, masses, elements, confs, labels, p, d_max):
         """
-        A class to represent a water model.
+        A class to represent predefined molecules. Currently, water, Na, and Cl.
 
         Parameters
         ----------
@@ -46,7 +15,7 @@ class Water:
             elements : numpy.ndarray
                 Atom elements.
             confs : numpy.ndarray
-                The main conformations of the water model.
+                The main conformations.
             labels : numpy.ndarray
                 Clustering labels
             p : numpy.ndarray
@@ -81,3 +50,15 @@ class Water:
         """
         idx = self._model.predict(rng)
         return self._main_coords[idx], self.d_max[idx]
+
+
+# Water and Ion classes are the same as PredefMol.
+# However, if specific adjustments are necessary in the future, this implementation has the flexibility to easily do so.
+class Water(PredefMol):
+    def __init__(self, atoms, masses, elements, confs, labels, p, d_max):
+        super().__init__(atoms, masses, elements, confs, labels, p, d_max)
+
+
+class Ion(PredefMol):
+    def __init__(self, atoms, masses, elements, confs, labels, p, d_max):
+        super().__init__(atoms, masses, elements, confs, labels, p, d_max)

@@ -10,7 +10,7 @@ import numpy as np
 from artsm.utils.cli import parse_cl_coarse_graining
 from artsm.utils.fileparsing import read_yaml, setup_logger
 from artsm.utils.other import mda_selection
-from artsm.water.data import supported_water_models
+from artsm.predefined_molecules.data import supported_predefined_molecules
 
 
 def read_simulation(args):
@@ -38,25 +38,25 @@ def extract_mapping(filenames):
     """
     Extract the mapping fields from the yaml file.
 
-    If a mapping field is not found for a dict entry then it is searched for in the supported water models. If it is not found there either
-    then the program exits.
-
-    Args:
+    Parameters
+    ----------
         filenames (str): The path to the yaml file.
 
-    Returns:
+    Returns
+    -------
         dict: The mapping.
 
-    Raises:
-        SystemExit: If the mapping is not specified for a molecule.
+    Raises
+    ------
+        SystemExit: If the mapping is not correctly specified for a molecule.
     """
     dict_ = {}
     for filename in filenames:
         dict_.update(read_yaml(filename))
     mapping = {}
     for mol, data in dict_.items():
-        if 'mapping' not in data:
-            if data in supported_water_models:
+        if isinstance(data, str):
+            if data in supported_predefined_molecules:
                 mapping[mol] = data
             else:
                 logger = setup_logger(__name__)
@@ -90,7 +90,7 @@ def initialize_cg_universe(aa, mapping):
     n_residues = 0
     for residue in aa.residues:
         residue_name = residue.resname
-        if isinstance(mapping[residue_name], str) and mapping[residue_name] in supported_water_models:
+        if isinstance(mapping[residue_name], str) and mapping[residue_name] in supported_predefined_molecules:
             offset += residue.atoms.n_atoms
             continue
         cg_beads.extend(bead_names[residue_name])
@@ -113,7 +113,7 @@ def coarse_grain(aa, cg, mapping):
         coordinates = np.zeros((cg.atoms.n_atoms, 3))
         count = 0
         for id_, residue in enumerate(aa.residues):
-            if isinstance(mapping[residue.resname], str) and mapping[residue.resname] in supported_water_models:
+            if isinstance(mapping[residue.resname], str) and mapping[residue.resname] in supported_predefined_molecules:
                 continue
             for atoms_names in mapping[residue.resname].values():
                 selection = f'resid {id_ + 1} and ({mda_selection(atoms_names)})'
@@ -126,7 +126,7 @@ def coarse_grain(aa, cg, mapping):
         coordinates = np.zeros((aa.trajectory.n_frames, cg.atoms.n_atoms, 3))
         count = 0
         for id_, residue in enumerate(aa.residues):
-            if isinstance(mapping[residue.resname], str) and mapping[residue.resname] in supported_water_models:
+            if isinstance(mapping[residue.resname], str) and mapping[residue.resname] in supported_predefined_molecules:
                 continue
             for atoms_names in mapping[residue.resname].values():
                 selection = f'resid {id_ + 1} and ({mda_selection(atoms_names)})'

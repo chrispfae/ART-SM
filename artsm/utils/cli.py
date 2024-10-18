@@ -113,7 +113,7 @@ def parse_cl_db(cl):
 
 def parse_cl_append(cl):
     parser = argparse.ArgumentParser(prog='artsm-append',
-                                     description='Appending an existing database with new fragments and fragment pairs.' 
+                                     description='Appending an existing database with new fragments and fragment pairs.'
                                                  'Required are the orgignal database -d and the output database -o. '
                                                  'Moreover, an atomistic snapshot (e.g. pdb), '
                                                  'trajectory (e.g. xtc) and a mapping file that indicates the mapping '
@@ -126,7 +126,7 @@ def parse_cl_append(cl):
     # Specific arguments for parse_cl_append
     requiredNamed = parser.add_argument_group('required named arguments')
     requiredNamed.add_argument('-d', '--database', type=str, dest='d', required=True,
-                                 help='Existing database that will be appended.')
+                               help='Existing database that will be appended.')
     requiredNamed.add_argument('-o', '--output', type=str, dest='o', required=True,
                                help='Output database that includes the appended data.')
     parser.add_argument('--release', action='store_true', help='Additional release database is generated, which only'
@@ -273,6 +273,6 @@ def parse_cl_generate_posre(cl):
                         help='Output itp file. Prefix is automatically added for different molecules.')
     parser.add_argument('-r', nargs='?', type=str,
                         help='Output structure file for position restraint simulation, e.g. gro file.')
-    parser.add_argument('--restrain_water', action='store_true', help="Flat bottom position restraint files"
-                                                                      "are generated for water.")
+    parser.add_argument('--restrain_water_ion', action='store_true', help="Flat bottom position restraint files"
+                                                                          "are generated for water and ions.")
     return parser.parse_args(cl)

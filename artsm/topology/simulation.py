@@ -4,9 +4,9 @@ import warnings
 import MDAnalysis as mda
 import numpy as np
 
-import artsm.water.model
+import artsm.predefined_molecules.classes
 from artsm.hydrogens.hydrogens import correct_hydrogens
-from artsm.water.data import sphere_radius
+from artsm.predefined_molecules.data import sphere_radius
 from artsm.optimization.optimization import optimize_molecule, optimize_one_bead_mol
 from artsm.resolution_transformation.backmap import rotate_random
 from artsm.topology.molecule import Molecule
@@ -17,8 +17,8 @@ from artsm.utils.fileparsing import join_path, read_yaml
 from artsm.utils.other import setup_logger, center_of_mass, mda_selection
 from artsm.utils.clashing_atoms import clashing_atoms, find_neighbors
 from artsm.utils.smiles import canonical_atom_order
-from artsm.water.model import get_water_model, Water
-from artsm.water.utils import correct_water
+from artsm.predefined_molecules.classes import PredefMol
+from artsm.predefined_molecules.utils import correct_predefined_molecules, get_predefined_molecule
 
 
 def _check_config(config, required_keys):
@@ -242,7 +242,7 @@ def _parse_topology(molecules, rng):
     if type_random_value(molecules, rng) != Molecule:
         for molecule_name, molecule in molecules.items():
             if isinstance(molecule, str):
-                molecules[molecule_name] = get_water_model(molecule)
+                molecules[molecule_name] = get_predefined_molecule(molecule)
             else:
                 smiles = molecule['smiles']
                 adj_atoms = molecule['adj_atoms']
@@ -266,7 +266,7 @@ def _create_tracking(cg, molecules):
     tracking_cg_to_aa = np.empty(len(cg.atoms), dtype=object)
     for i, bead in enumerate(cg.atoms):
         molecule = molecules[bead.resname]
-        if isinstance(molecule, Water) or len(molecule.fragments) == 1:
+        if isinstance(molecule, PredefMol) or len(molecule.fragments) == 1:
             tracking_cg_to_aa[i] = np.arange(counter, counter + molecule.n_atoms)
             counter += molecule.n_atoms
         else:
@@ -325,10 +325,10 @@ class Simulation:
             - Determine dihedrals of z-matrix based on the adjacency matrix
             - Derive the connectivity of the fragments and the connecting atoms
             - Derive loop order.
-        Ignore water molecules.
+        Ignore predefined molecules.
         """
         for molecule in self.molecules.values():
-            if not isinstance(molecule, Water):
+            if not isinstance(molecule, PredefMol):
                 molecule.derive_topology()
 
     def read_simulation(self, *, memory=False):
@@ -361,7 +361,7 @@ class Simulation:
 
         For each fragment pair the internal coordinates of both fragments and the connector is extracted.
         Additionally, features (currently center of mass distance between both fragments) are extracted.
-        If the residue is a water molecule, it is skipped.
+        If the residue is a predefined molecule, it is skipped.
         """
         if self.sampling_step is None:
             logger = setup_logger(__name__)
@@ -369,7 +369,7 @@ class Simulation:
             sys.exit(-1)
         for _ in self.universe.trajectory[::self.sampling_step]:
             for residue in self.universe.residues:
-                if isinstance(self.molecules[residue.resname], Water):
+                if isinstance(self.molecules[residue.resname], PredefMol):
                     continue
                 else:
                     molecule = self.molecules[residue.resname]
@@ -391,7 +391,7 @@ class Simulation:
         # Determine all bonds for each molecule
         bonds_idx = {}
         for mol_name, mol in self.molecules.items():
-            if isinstance(mol, Water):
+            if isinstance(mol, PredefMol):
                 continue
             else:
                 bonds_idx[mol_name] = _bonds_idx_mol(mol.atoms_f, mol.elements_f, mol.bond_list_f)
@@ -404,7 +404,7 @@ class Simulation:
             sys.exit(-1)
         for _ in self.universe.trajectory[::self.sampling_step]:
             for residue in self.universe.residues:
-                if isinstance(self.molecules[residue.resname], Water):
+                if isinstance(self.molecules[residue.resname], PredefMol):
                     continue
                 else:
                     for idx, atoms in bonds_idx[residue.resname].items():
@@ -426,7 +426,7 @@ class Simulation:
         # Determine all angles for each molecule
         angles_idx = {}
         for mol_name, mol in self.molecules.items():
-            if isinstance(mol, Water):
+            if isinstance(mol, PredefMol):
                 continue
             else:
                 angle_list = derive_angle_list(mol.A_f.values)
@@ -440,7 +440,7 @@ class Simulation:
             sys.exit(-1)
         for _ in self.universe.trajectory[::self.sampling_step]:
             for residue in self.universe.residues:
-                if isinstance(self.molecules[residue.resname], Water):
+                if isinstance(self.molecules[residue.resname], PredefMol):
                     continue
                 else:
                     for idx, atoms in angles_idx[residue.resname].items():
@@ -472,7 +472,7 @@ class Simulation:
 
         # Write molecule data from simulations to database
         for molecule in self.molecules.values():
-            if not isinstance(molecule, Water):
+            if not isinstance(molecule, PredefMol):
                 molecule.write_to_db(database, ignore_fr_pairs, ignore_fr)
 
     def load_models_db(self, database):
@@ -483,7 +483,7 @@ class Simulation:
         database : DBdata
         """
         for molecule in self.molecules.values():
-            if not isinstance(molecule, Water):
+            if not isinstance(molecule, PredefMol):
                 if len(molecule.fragments) > 1:
                     for fr_pair_id, fr_pair in molecule.fr_pairs.items():
                         identifier, reverse = database.isin_fr_pair(fr_pair)
@@ -526,7 +526,7 @@ class Simulation:
             3. Optimize the connectors to properly connect fragments:
                 - Fragments are rotated and translated such that accurate bond lengths, angles,
                   and dihedral angles are obtained for the connector.
-                - Water and one bead molecules are rotated such that no clashes to neighboring atoms occur.
+                - One bead molecules are rotated such that no clashes to neighboring atoms occur.
             4. Hydrogens are added to molecules with more than one bead.
             5. Clashes are resolved by shifting individual atoms. -> Necessary for subsequent energy minimization.
 
@@ -549,9 +549,9 @@ class Simulation:
         aa_coords = np.full((aa.n_atoms, 3), np.inf)
         aa.positions = aa_coords
         counter = 0
-        water = None
+        predefined_mols = []
         # For each cg bead, find neighbor beads.
-        # This allows for a local optimization approach for molecules consisting of only one bead and water.
+        # This allows for a local optimization approach for molecules consisting of only one bead and predefined molecules.
         # We also need to keep tracking of the bead (not molecule) id and the mapping of bead ids to atomistic atom ids.
         cg_neighbors = find_neighbors(cg.atoms.positions, cg.dimensions, threshold=10)
         tracking_cg_to_aa = _create_tracking(cg, self.molecules)
@@ -563,12 +563,12 @@ class Simulation:
             if i % 1000 == 0 and i != 0:
                 logger.info(f'Finished {i} molecules.')
             molecule = self.molecules[cg_residue.resname]
-            if isinstance(molecule, Water) or len(molecule.fragments) == 1:
+            if isinstance(molecule, PredefMol) or len(molecule.fragments) == 1:
                 # Predict conformation and translate to bead position
                 bead_coord = cg_residue.atoms.positions
-                if isinstance(molecule, Water):
-                    if water is None:
-                        water = cg_residue.resname
+                if isinstance(molecule, PredefMol):
+                    if cg_residue.resname not in predefined_mols:
+                        predefined_mols.append(cg_residue.resname)
                     conf, d_max = molecule.predict_confs(rng)
                     conf += (bead_coord - center_of_mass(conf, molecule.masses))
                 else:
@@ -655,11 +655,11 @@ class Simulation:
                 for fr in molecule.fragments.values():
                     fr.reset_labels()
             counter += molecule.n_atoms
-            aa.positions = aa_coords  # Update coords for water selection
+            aa.positions = aa_coords  # Update coords. Necessary for properly determining coords_neighbors.
 
-        # Correct indices for water molecules
-        if water is not None:
-            aa = correct_water(aa, water).atoms
+        # Correct indices for predefined molecules
+        for predefined_mol in predefined_mols:
+            aa = correct_predefined_molecules(aa, predefined_mol).atoms
 
         # Remove hydrogens
         if not hydrogens:
