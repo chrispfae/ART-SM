@@ -62,3 +62,10 @@ class Water(PredefMol):
 class Ion(PredefMol):
     def __init__(self, atoms, masses, elements, confs, labels, p, d_max):
         super().__init__(atoms, masses, elements, confs, labels, p, d_max)
+
+
+class OneToOne:
+    def __init(self, name):
+        self.name = name
+        self.n_atoms = 1
+

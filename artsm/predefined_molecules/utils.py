@@ -3,7 +3,7 @@ import sys
 import MDAnalysis as mda
 import numpy as np
 
-from artsm.predefined_molecules.classes import Water, Ion
+from artsm.predefined_molecules.classes import Water, Ion, OneToOne
 from artsm.predefined_molecules.data import supported_water_types, supported_ion_types
 from artsm.utils.other import setup_logger
 
@@ -100,6 +100,8 @@ def get_predefined_molecule(molecule_name='TIP3P'):
         return Water(**supported_water_types[molecule_name])
     elif molecule_name in supported_ion_types:
         return Ion(**supported_ion_types[molecule_name])
+    elif molecule_name == '1to1' or 'OnetoOne':
+        return OneToOne(molecule_name)
     else:
         logger = setup_logger(__name__)
         logger.error(f'The requested predefined molecule {molecule_name} is not available. '

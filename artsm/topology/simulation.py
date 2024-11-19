@@ -17,7 +17,7 @@ from artsm.utils.fileparsing import join_path, read_yaml
 from artsm.utils.other import setup_logger, center_of_mass, mda_selection
 from artsm.utils.clashing_atoms import clashing_atoms, find_neighbors
 from artsm.utils.smiles import canonical_atom_order
-from artsm.predefined_molecules.classes import PredefMol, Water, Ion
+from artsm.predefined_molecules.classes import PredefMol, Water, Ion, OneToOne
 from artsm.predefined_molecules.utils import correct_predefined_molecules, get_predefined_molecule, group_water
 
 
@@ -266,7 +266,7 @@ def _create_tracking(cg, molecules):
     tracking_cg_to_aa = np.empty(len(cg.atoms), dtype=object)
     for i, bead in enumerate(cg.atoms):
         molecule = molecules[bead.resname]
-        if isinstance(molecule, PredefMol) or len(molecule.fragments) == 1:
+        if isinstance(molecule, PredefMol) or isinstance(molecule, OneToOne) or len(molecule.fragments) == 1:
             tracking_cg_to_aa[i] = np.arange(counter, counter + molecule.n_atoms)
             counter += molecule.n_atoms
         else:
@@ -328,7 +328,7 @@ class Simulation:
         Ignore predefined molecules.
         """
         for molecule in self.molecules.values():
-            if not isinstance(molecule, PredefMol):
+            if not isinstance(molecule, PredefMol) and not isinstance(molecule, OneToOne):
                 molecule.derive_topology()
 
     def read_simulation(self, *, memory=False):
@@ -369,7 +369,7 @@ class Simulation:
             sys.exit(-1)
         for _ in self.universe.trajectory[::self.sampling_step]:
             for residue in self.universe.residues:
-                if isinstance(self.molecules[residue.resname], PredefMol):
+                if isinstance(self.molecules[residue.resname], PredefMol) or isinstance(self.molecules[residue.resname], OneToOne):
                     continue
                 else:
                     molecule = self.molecules[residue.resname]
@@ -391,7 +391,7 @@ class Simulation:
         # Determine all bonds for each molecule
         bonds_idx = {}
         for mol_name, mol in self.molecules.items():
-            if isinstance(mol, PredefMol):
+            if isinstance(mol, PredefMol) or isinstance(mol, OneToOne):
                 continue
             else:
                 bonds_idx[mol_name] = _bonds_idx_mol(mol.atoms_f, mol.elements_f, mol.bond_list_f)
@@ -404,7 +404,7 @@ class Simulation:
             sys.exit(-1)
         for _ in self.universe.trajectory[::self.sampling_step]:
             for residue in self.universe.residues:
-                if isinstance(self.molecules[residue.resname], PredefMol):
+                if isinstance(self.molecules[residue.resname], PredefMol) or isinstance(self.molecules[residue.resname], OneToOne):
                     continue
                 else:
                     for idx, atoms in bonds_idx[residue.resname].items():
@@ -426,7 +426,7 @@ class Simulation:
         # Determine all angles for each molecule
         angles_idx = {}
         for mol_name, mol in self.molecules.items():
-            if isinstance(mol, PredefMol):
+            if isinstance(mol, PredefMol) or isinstance(mol, OneToOne):
                 continue
             else:
                 angle_list = derive_angle_list(mol.A_f.values)
@@ -440,7 +440,7 @@ class Simulation:
             sys.exit(-1)
         for _ in self.universe.trajectory[::self.sampling_step]:
             for residue in self.universe.residues:
-                if isinstance(self.molecules[residue.resname], PredefMol):
+                if isinstance(self.molecules[residue.resname], PredefMol) or isinstance(self.molecules[residue.resname], OneToOne):
                     continue
                 else:
                     for idx, atoms in angles_idx[residue.resname].items():
@@ -472,7 +472,7 @@ class Simulation:
 
         # Write molecule data from simulations to database
         for molecule in self.molecules.values():
-            if not isinstance(molecule, PredefMol):
+            if not isinstance(molecule, PredefMol) and not isinstance(molecule, OneToOne):
                 molecule.write_to_db(database, ignore_fr_pairs, ignore_fr)
 
     def load_models_db(self, database):
@@ -483,7 +483,7 @@ class Simulation:
         database : DBdata
         """
         for molecule in self.molecules.values():
-            if not isinstance(molecule, PredefMol):
+            if not isinstance(molecule, PredefMol) and not isinstance(molecule, OneToOne):
                 if len(molecule.fragments) > 1:
                     for fr_pair_id, fr_pair in molecule.fr_pairs.items():
                         identifier, reverse = database.isin_fr_pair(fr_pair)
@@ -563,7 +563,10 @@ class Simulation:
             if i % 1000 == 0 and i != 0:
                 logger.info(f'Finished {i} molecules.')
             molecule = self.molecules[cg_residue.resname]
-            if isinstance(molecule, PredefMol) or len(molecule.fragments) == 1:
+            if isinstance(molecule, OneToOne):
+                aa_coords[counter: counter + molecule.n_atoms] = cg_residue.atoms.positions[0]
+                bead_number += 1
+            elif isinstance(molecule, PredefMol) or len(molecule.fragments) == 1:
                 # Predict conformation and translate to bead position
                 bead_coord = cg_residue.atoms.positions
                 if isinstance(molecule, PredefMol):
