@@ -7,6 +7,6 @@ matplotlib
 mdanalysis>=2.5
 rdkit
 biotite
-hydride
+hydride<=1.2.2
 pyyaml
 pytest
