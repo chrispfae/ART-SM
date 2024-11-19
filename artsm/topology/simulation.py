@@ -17,8 +17,8 @@ from artsm.utils.fileparsing import join_path, read_yaml
 from artsm.utils.other import setup_logger, center_of_mass, mda_selection
 from artsm.utils.clashing_atoms import clashing_atoms, find_neighbors
 from artsm.utils.smiles import canonical_atom_order
-from artsm.predefined_molecules.classes import PredefMol
-from artsm.predefined_molecules.utils import correct_predefined_molecules, get_predefined_molecule
+from artsm.predefined_molecules.classes import PredefMol, Water, Ion
+from artsm.predefined_molecules.utils import correct_predefined_molecules, get_predefined_molecule, group_water
 
 
 def _check_config(config, required_keys):
@@ -576,7 +576,6 @@ class Simulation:
                     conf = fr.predict_confs(rng)
                     conf += (bead_coord - center_of_mass(conf, fr.masses))
                     d_max = sphere_radius(conf, bead_coord)
-
                 # Select neighbor atoms
                 cg_neighbors_current = np.array(cg_neighbors[bead_number])
                 relevant_beads = cg_neighbors_current[cg_neighbors_current < bead_number]
@@ -657,18 +656,28 @@ class Simulation:
             counter += molecule.n_atoms
             aa.positions = aa_coords  # Update coords. Necessary for properly determining coords_neighbors.
 
-        # Correct indices for predefined molecules
+        # Correct indices for predefined molecules. Water has to be corrected before ions.
         for predefined_mol in predefined_mols:
-            aa = correct_predefined_molecules(aa, predefined_mol).atoms
+            if isinstance(self.molecules[predefined_mol], Water):
+                aa = correct_predefined_molecules(aa, predefined_mol).atoms
+        for predefined_mol in predefined_mols:
+            if isinstance(self.molecules[predefined_mol], Ion):
+                water_name = 'TIP'  # Default name if no water molecule is present.
+                for mol in predefined_mols:
+                    if isinstance(self.molecules[predefined_mol], Water):
+                        water_name = mol
+                        break
+                aa = correct_predefined_molecules(aa, predefined_mol, ion_water=water_name).atoms
+                aa = group_water(aa, water_name)
 
         # Remove hydrogens
         if not hydrogens:
             idx = idx_atoms_f(aa.names)
-            aa_coords = aa_coords[idx]
             aa = aa[idx]
 
         logger.info('Resolve clashing atoms.')
         # Resolve atom clashes
+        aa_coords = aa.positions
         clashing_atoms(aa_coords, aa.dimensions, rng, radius=0.15)
         aa.positions = aa_coords
 

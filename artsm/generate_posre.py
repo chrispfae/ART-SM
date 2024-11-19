@@ -151,7 +151,7 @@ def main():
         logger = setup_logger(__name__)
         logger.info(f'Recommended value for parameter R in flat bottom position restraint: {recommended_radius} nm.')
         logger.info(f'I will use this value for generating the position restraint itp file')
-        output_posre_itp(aa, recommended_radius, args.i, predefined_mols, args.restrain_water_ion_ion)
+        output_posre_itp(aa, recommended_radius, args.i, predefined_mols, args.restrain_water_ion)
 
 
 if __name__ == '__main__':
