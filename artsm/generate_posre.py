@@ -132,7 +132,7 @@ def main():
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=UserWarning)
         cg = mda.Universe(args.c)
-    mapping, predefined_mols, onetoone = extract_mapping(args.t, cg)
+    mapping, predefined_mols = extract_mapping(args.t, cg)
     atom_order = derive_atom_order(args.t, cg)
     aa = _atomistic_universe(cg, atom_order)
     box_dims = aa.dimensions
