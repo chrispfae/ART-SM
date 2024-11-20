@@ -47,6 +47,9 @@ def derive_atom_order(filenames, cg):
     for mol, data in dict_.items():
         if isinstance(data, str) and data in supported_predefined_molecules:
             atom_order[mol] = supported_predefined_molecules[data]['atoms']
+        elif isinstance(data, str) and data == 'OneToOne':
+            atom = cg.select_atoms(f'resname {mol}').names[0:1]
+            atom_order[mol] = atom
         elif isinstance(data, dict) and 'atom_order' in data:
             atom_order[mol] = data['atom_order']
         else:
