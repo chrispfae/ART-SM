@@ -702,15 +702,20 @@ def _atomistic_universe(cg, snapshot):
     MDAnalysis.Universe
         Initialized atomistic universe.
     """
-    residue_names = cg.residues.resnames
-    n_residues = residue_names.size
-    atoms = np.array([snapshot.molecules[mol].atom_order for mol in residue_names], dtype=object)
+    n_residues = cg.residues.resnames.size
+    atoms = []
+    for residue in cg.residues:
+        if isinstance(snapshot.molecules[residue.resname], OneToOne):
+            atoms.append(residue.atoms)
+        else:
+            atoms.append(snapshot.molecules[residue.resname].atom_order)
+    atoms = np.array(atoms, dtype=object)
     residue_idx = np.array([count for count, sublist in enumerate(atoms) for _ in sublist])
     atoms = np.concatenate(atoms)
     n_atoms = atoms.size
     u = mda.Universe.empty(n_atoms, n_residues=n_residues, atom_resindex=residue_idx, trajectory=True)
     u.add_TopologyAttr('name', atoms)
-    u.add_TopologyAttr('resname', residue_names)
+    u.add_TopologyAttr('resname', cg.residues.resnames)
     u.add_TopologyAttr('resid', list(range(1, n_residues + 1)))
     u.dimensions = cg.dimensions
     return u

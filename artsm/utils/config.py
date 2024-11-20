@@ -195,7 +195,8 @@ def check_config_db(config):
         remove_keys(config_sim, required_keys + ['time_step'])
         for config_mol in config_sim['t'].values():
             if isinstance(config_mol, str):
-                if config_mol not in supported_water_types and config_mol not in supported_ion_types:
+                if (config_mol not in supported_water_types and config_mol not in supported_ion_types
+                        and config_mol != 'OneToOne'):
                     logger = setup_logger(__name__)
                     logger.error(f'The requested predefined molecule {config_mol} is not available. '
                                  f'However, the water types {supported_water_types.keys()} and ion types '
@@ -226,7 +227,8 @@ def check_config_bm(config):
         remove_keys(config_sim, required_keys)
         for config_mol in config_sim['t'].values():
             if isinstance(config_mol, str):
-                if config_mol not in supported_water_types and config_mol not in supported_ion_types:
+                if (config_mol not in supported_water_types and config_mol not in supported_ion_types
+                        and config_mol != 'OneToOne'):
                     logger = setup_logger(__name__)
                     logger.error(f'The requested predefined molecule {config_mol} is not available. '
                                  f'However, the water types {supported_water_types.keys()} and ion types '

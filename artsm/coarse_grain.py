@@ -56,7 +56,7 @@ def extract_mapping(filenames):
     mapping = {}
     for mol, data in dict_.items():
         if isinstance(data, str):
-            if data in supported_predefined_molecules:
+            if data in supported_predefined_molecules or data == 'OneToOne':
                 mapping[mol] = data
             else:
                 logger = setup_logger(__name__)
@@ -90,13 +90,20 @@ def initialize_cg_universe(aa, mapping):
     n_residues = 0
     for residue in aa.residues:
         residue_name = residue.resname
-        if isinstance(mapping[residue_name], str) and mapping[residue_name] in supported_predefined_molecules:
+        if isinstance(mapping[residue_name], str):
+            if mapping[residue_name] in supported_predefined_molecules:
+                offset += residue.atoms.n_atoms
+                continue
+            elif mapping[residue_name] == 'OneToOne':
+                cg_beads.append(residue_name)
+                atomistic_atoms_idx.extend(np.arange(1) + offset)
+                n_residues += 1
+                offset += 1
+        else:
+            cg_beads.extend(bead_names[residue_name])
+            atomistic_atoms_idx.extend(np.arange(n_beads[residue_name]) + offset)
+            n_residues += 1
             offset += residue.atoms.n_atoms
-            continue
-        cg_beads.extend(bead_names[residue_name])
-        atomistic_atoms_idx.extend(np.arange(n_beads[residue_name]) + offset)
-        n_residues += 1
-        offset += residue.atoms.n_atoms
 
     cg = aa.atoms[atomistic_atoms_idx]
     cg = mda.Merge(cg)
@@ -115,11 +122,15 @@ def coarse_grain(aa, cg, mapping):
         for id_, residue in enumerate(aa.residues):
             if isinstance(mapping[residue.resname], str) and mapping[residue.resname] in supported_predefined_molecules:
                 continue
-            for atoms_names in mapping[residue.resname].values():
-                selection = f'resid {id_ + 1} and ({mda_selection(atoms_names)})'
-                coordinates_bead = aa.select_atoms(selection).center_of_mass()
-                coordinates[count, :] = coordinates_bead
+            elif mapping[residue.resname] == 'OneToOne':
+                coordinates[count, :] = residue.atoms.positions[0]
                 count += 1
+            else:
+                for atoms_names in mapping[residue.resname].values():
+                    selection = f'resid {id_ + 1} and ({mda_selection(atoms_names)})'
+                    coordinates_bead = aa.select_atoms(selection).center_of_mass()
+                    coordinates[count, :] = coordinates_bead
+                    count += 1
         cg.atoms.positions = coordinates
         cg.dimensions = aa.dimensions
     else:
@@ -128,12 +139,18 @@ def coarse_grain(aa, cg, mapping):
         for id_, residue in enumerate(aa.residues):
             if isinstance(mapping[residue.resname], str) and mapping[residue.resname] in supported_predefined_molecules:
                 continue
-            for atoms_names in mapping[residue.resname].values():
-                selection = f'resid {id_ + 1} and ({mda_selection(atoms_names)})'
-                coordinates_bead = AnalysisFromFunction(lambda atoms: atoms.center_of_mass(),
-                                                        aa.select_atoms(selection)).run().results['timeseries']
+            elif mapping[residue.resname] == 'OneToOne':
+                coordinates_bead = AnalysisFromFunction(lambda atoms: atoms.positions[0],
+                                                        residue.atoms).run().results['timeseries']
                 coordinates[:, count, :] = coordinates_bead
                 count += 1
+            else:
+                for atoms_names in mapping[residue.resname].values():
+                    selection = f'resid {id_ + 1} and ({mda_selection(atoms_names)})'
+                    coordinates_bead = AnalysisFromFunction(lambda atoms: atoms.center_of_mass(),
+                                                            aa.select_atoms(selection)).run().results['timeseries']
+                    coordinates[:, count, :] = coordinates_bead
+                    count += 1
         cg.load_new(coordinates, format=MemoryReader)
         for ts in range(aa.trajectory.n_frames):
             aa.trajectory[ts]

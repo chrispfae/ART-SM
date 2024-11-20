@@ -100,7 +100,7 @@ def get_predefined_molecule(molecule_name='TIP3P'):
         return Water(**supported_water_types[molecule_name])
     elif molecule_name in supported_ion_types:
         return Ion(**supported_ion_types[molecule_name])
-    elif molecule_name == '1to1' or molecule_name == 'OnetoOne':
+    elif molecule_name == 'OneToOne':
         return OneToOne(molecule_name)
     else:
         logger = setup_logger(__name__)

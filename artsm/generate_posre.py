@@ -14,7 +14,7 @@ from artsm.predefined_molecules.data import supported_predefined_molecules
 from artsm.predefined_molecules.utils import correct_predefined_molecules
 
 
-def extract_mapping(filenames):
+def extract_mapping(filenames, cg):
     dict_ = {}
     for filename in filenames:
         dict_.update(read_yaml(filename))
@@ -25,6 +25,9 @@ def extract_mapping(filenames):
         if isinstance(data, str) and data in supported_predefined_molecules:
             mapping[mol] = {atom: 'predefined_mol' for atom in supported_predefined_molecules[data]['atoms']}
             predefined_mols.append(mol)
+        elif isinstance(data, str) and data == 'OneToOne':
+            atom = cg.select_atoms(f'resname {data}').names[0]
+            mapping[mol] = {atom: data}
         elif isinstance(data, dict) and 'mapping' in data:
             swapped_dict = {value: key for key, values in data['mapping'].items() for value in values}
             mapping[mol] = swapped_dict
@@ -126,10 +129,10 @@ def output_posre_itp(aa_posre, radius, filename, predefined_mol, restrain_water_
 
 def main():
     args = parse_cl_generate_posre(sys.argv[1:])
-    mapping, predefined_mols = extract_mapping(args.t)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=UserWarning)
         cg = mda.Universe(args.c)
+    mapping, predefined_mols, onetoone = extract_mapping(args.t, cg)
     atom_order = derive_atom_order(args.t, cg)
     aa = _atomistic_universe(cg, atom_order)
     box_dims = aa.dimensions
