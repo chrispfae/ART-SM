@@ -65,7 +65,7 @@ class Ion(PredefMol):
 
 
 class OneToOne:
-    def __init(self, name):
+    def __init__(self, name):
         self.name = name
         self.n_atoms = 1
 
