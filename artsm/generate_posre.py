@@ -26,8 +26,8 @@ def extract_mapping(filenames, cg):
             mapping[mol] = {atom: 'predefined_mol' for atom in supported_predefined_molecules[data]['atoms']}
             predefined_mols.append(mol)
         elif isinstance(data, str) and data == 'OneToOne':
-            atom = cg.select_atoms(f'resname {data}').names[0]
-            mapping[mol] = {atom: data}
+            atom = cg.select_atoms(f'resname {mol}').names[0]
+            mapping[mol] = {atom: mol}
         elif isinstance(data, dict) and 'mapping' in data:
             swapped_dict = {value: key for key, values in data['mapping'].items() for value in values}
             mapping[mol] = swapped_dict
