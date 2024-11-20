@@ -706,7 +706,7 @@ def _atomistic_universe(cg, snapshot):
     atoms = []
     for residue in cg.residues:
         if isinstance(snapshot.molecules[residue.resname], OneToOne):
-            atoms.append(residue.atoms)
+            atoms.append(residue.atoms.names)
         else:
             atoms.append(snapshot.molecules[residue.resname].atom_order)
     atoms = np.array(atoms, dtype=object)
