@@ -95,7 +95,7 @@ def initialize_cg_universe(aa, mapping):
                 offset += residue.atoms.n_atoms
                 continue
             elif mapping[residue_name] == 'OneToOne':
-                cg_beads.append(residue_name)
+                cg_beads.append(residue.atoms.names[0])
                 atomistic_atoms_idx.extend(np.arange(1) + offset)
                 n_residues += 1
                 offset += 1
