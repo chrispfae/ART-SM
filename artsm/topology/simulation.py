@@ -592,6 +592,7 @@ class Simulation:
                 if coords_neighbors.size > 0:
                     conf = optimize_one_bead_mol(conf, coords_neighbors, bead_coord, aa.dimensions,
                                                  options={'eps': 1e-5}, rng=rng)
+                conf = conf[molecule.atom_order_idx]
                 aa_coords[counter: counter + molecule.n_atoms] = conf.copy()
 
                 # Update bead tracking
