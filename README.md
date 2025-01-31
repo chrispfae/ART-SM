@@ -20,7 +20,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project                                                                                    
 
-We develop a backmapping algorithm called ART-SM to convert coarse-grained molecules to atomistic resolution. Check out our paper [ART-SM: Boosting Fragment-based Backmapping by Machine Learning on ChemRxiv](https://chemrxiv.org/engage/chemrxiv/article-details/662933e421291e5d1d9ab879). Our fragment-based approach in contrast to traditional approaches uses more than one rigid structure per fragment and selects the most appropriate one based on the coarse-grained conformation with a random forest regressor. Moreover, ART-SM optimizes bond lengths, angles, and the dihedral angle to connect individual fragments properly. ART-SM has two main steps:
+We develop a backmapping algorithm called ART-SM to convert coarse-grained molecules to atomistic resolution. Check out our paper [ART-SM: Boosting Fragment-based Backmapping by Machine Learning on ChemRxiv](https://chemrxiv.org/engage/chemrxiv/article-details/679ca56efa469535b98c70a5). Our fragment-based approach in contrast to traditional approaches uses more than one rigid structure per fragment and selects the most appropriate one based on the coarse-grained conformation with a random forest regressor. Moreover, ART-SM optimizes bond lengths, angles, and the dihedral angle to connect individual fragments properly. ART-SM has two main steps:
 
 1. Build a fragment pair database from atomistic simulation data
 2. Backmap a CG structure to atomistic resolution using the database built in step 1
@@ -29,7 +29,7 @@ Check out our tutorial in the corresponding `tutorial` folder to try it out!
 Note that this project is a 'proof of principle', meaning that is tested for small molecules of up to three beads and should be used with caution for larger or complex molecules. It will be extended to lipids, macromolecules and ring structures in the future.
 
 <!-- INSTALLATION -->
-### Installation
+## Installation
 
 1. Clone the repo
    ```sh

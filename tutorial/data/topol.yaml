@@ -95,6 +95,7 @@ HEP:
   - H14
   - H15
   - H16
+  charges:
   mapping:
     C1O:
     - O
