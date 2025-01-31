@@ -1,0 +1,65 @@
+CPR:
+  adj_atoms:
+    BR:
+    - C2
+    C1:
+    - H1
+    - H2
+    - H3
+    - C2
+    C2:
+    - C1
+    - BR
+    - CL
+    - C3
+    C3:
+    - C2
+    - H4
+    - H5
+    - O
+    CL:
+    - C2
+    H1:
+    - C1
+    H2:
+    - C1
+    H3:
+    - C1
+    H4:
+    - C3
+    H5:
+    - C3
+    H6:
+    - O
+    O:
+    - C3
+    - H6
+  atom_order:
+  - H1
+  - C1
+  - H2
+  - H3
+  - C2
+  - BR
+  - CL
+  - C3
+  - H4
+  - H5
+  - O
+  - H6
+  charges:
+  mapping:
+    C1C:
+    - H1
+    - C1
+    - H2
+    - H3
+    - C2
+    - BR
+    - CL
+    - C3
+    - H4
+    - H5
+    - O
+    - H6
+  smiles: C[C@](CO)(Cl)Br 

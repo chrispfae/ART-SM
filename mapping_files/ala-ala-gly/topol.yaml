@@ -1,0 +1,158 @@
+AAG:
+  adj_atoms:
+    C1:
+    - CA1
+    - O1-2
+    - N2
+    C2:
+    - CA2
+    - O2-2
+    - N3
+    C3:
+    - CA3
+    - O3-2
+    - O4
+    CA1:
+    - N1
+    - C1
+    - HA3
+    - CB1
+    CA2:
+    - N2
+    - C2
+    - HA4
+    - CB2
+    CA3:
+    - N3
+    - C3
+    - HA1
+    - HA2
+    CB1:
+    - CA1
+    - HB1
+    - HB2
+    - HB3
+    CB2:
+    - CA2
+    - HB4
+    - HB5
+    - HB6
+    H1:
+    - N3
+    HA1:
+    - CA3
+    HA2:
+    - CA3
+    HA3:
+    - CA1
+    HA4:
+    - CA2
+    HB1:
+    - CB1
+    HB2:
+    - CB1
+    HB3:
+    - CB1
+    HB4:
+    - CB2
+    HB5:
+    - CB2
+    HB6:
+    - CB2
+    HN1:
+    - N1
+    HN2:
+    - N1
+    HN3:
+    - N2
+    HO1:
+    - O4
+    N1:
+    - CA1
+    - HN1
+    - HN2
+    N2:
+    - C1
+    - CA2
+    - HN3
+    N3:
+    - C2
+    - CA3
+    - H1
+    O1:
+    - C1-2
+    O2:
+    - C2-2
+    O3:
+    - C3-2
+    O4:
+    - C3
+    - HO1
+  atom_order:
+  - N1
+  - CA1
+  - C1
+  - O1
+  - HN1
+  - HA3
+  - CB1
+  - HB1
+  - HB2
+  - HB3
+  - HN2
+  - N2
+  - CA2
+  - C2
+  - O2
+  - HN3
+  - HA4
+  - CB2
+  - HB4
+  - HB5
+  - HB6
+  - N3
+  - CA3
+  - C3
+  - O3
+  - HA1
+  - HA2
+  - H1
+  - O4
+  - HO1
+  charges:
+  mapping:
+    B1:
+    - N1
+    - CA1
+    - C1
+    - O1
+    - HA3
+    - CB1
+    - HN2
+    - HN1
+    - HB1
+    - HB2
+    - HB3
+    B2:
+    - N2
+    - CA2
+    - C2
+    - HA4
+    - CB2
+    - O2
+    - HN3
+    - HB4
+    - HB5
+    - HB6
+    B3:
+    - CA3
+    - C3
+    - O3
+    - HA1
+    - HA2
+    - O4
+    - HO1
+    - N3
+    - H1
+  smiles: NC(C)C(=O)NC(C)C(=O)NCC(=O)O
+SOL: 'TIP3P'

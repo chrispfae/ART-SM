@@ -1,0 +1,60 @@
+FLE:
+  adj_atoms:
+    C1:
+    - O1
+    - H1
+    - H2
+    - C2
+    C2:
+    - C1
+    - O2-2
+    - C3
+    C3:
+    - C2
+    - H3
+    - H4
+    - H5
+    H1:
+    - C1
+    H2:
+    - C1
+    H3:
+    - C3
+    H4:
+    - C3
+    H5:
+    - C3
+    H6:
+    - O1
+    O1:
+    - C1
+    - H6
+    O2:
+    - C2-2
+  atom_order:
+  - O1
+  - C1
+  - H1
+  - H2
+  - C2
+  - O2
+  - C3
+  - H3
+  - H4
+  - H5
+  - H6
+  charges:
+  mapping:
+    N4a:
+    - O1
+    - C1
+    - H1
+    - H2
+    - C2
+    - O2
+    - C3
+    - H3
+    - H4
+    - H5
+    - H6
+  smiles: CC(=O)CO
